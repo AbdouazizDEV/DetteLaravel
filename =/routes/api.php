@@ -19,29 +19,21 @@ use App\Http\Controllers\ClientController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-/* Route::get('v1/users', function () {
-    return User::all();
-});
-
-// Route pour récupérer un utilisateur par son ID
-Route::get('v1/users/{id}', function ($id) {
-    return User::findOrFail($id);
-}); */
 
 Route::prefix('v1')->group(function () {
-    Route::get('users', [UserController::class, 'index']);
-    Route::get('users/{id}', [UserController::class, 'show']);
-    Route::post('users', [UserController::class, 'store']);
-    Route::put('users/{id}', [UserController::class, 'update']);
-    Route::patch('users/{id}', [UserController::class, 'update']);
-    Route::delete('users/{id}', [UserController::class, 'destroy']);
+    Route::get('users', [UserController::class, 'index']);// récupération de tous les users
+    Route::get('users/{id}', [UserController::class, 'show']);// récupération d'un user
+    Route::post('users', [UserController::class, 'store']);// Ajouter une user
+    Route::put('users/{id}', [UserController::class, 'update']);// Mettre à jour un user
+    Route::patch('users/{id}', [UserController::class, 'update']);// Mettre à jour un user
+    Route::delete('users/{id}', [UserController::class, 'destroy']);// Supprimer un user
 });
 
 Route::prefix('v1')->group(function () {
-    Route::get('clients', [ClientController::class, 'index']);
-    Route::get('clients/{id}', [ClientController::class, 'show']);
-    Route::post('clients', [ClientController::class, 'store']);
-    Route::put('clients/{id}', [ClientController::class, 'update']);
-    Route::patch('clients/{id}', [ClientController::class, 'update']);
-    Route::delete('clients/{id}', [ClientController::class, 'destroy']);
+    Route::get('clients', [ClientController::class, 'index']);  // Récupérer tous les clients avec filtrage, tri et pagination
+    Route::get('clients/{id}', [ClientController::class, 'show']);  // Récupérer un client spécifique
+    Route::post('clients', [ClientController::class, 'store']);  // Ajouter un nouveau client
+    Route::put('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour un client spécifique
+    Route::patch('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour partiellement un client spécifique
+    Route::delete('clients/{id}', [ClientController::class, 'destroy']);  // Supprimer un client spécifique
 });

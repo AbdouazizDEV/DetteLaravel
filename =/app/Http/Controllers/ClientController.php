@@ -6,28 +6,38 @@ use Illuminate\Http\Request;
 use App\Models\Client;
 use App\Http\Requests\ValidateClientPostRequest;
 use App\Http\Requests\ValidateClientUpdateRequest;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\AllowedSort;
 
 class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        // Lazy Loading : Récupère uniquement les clients
-        $clients = Client::paginate(10); // Pagination
+        
+        $clients = QueryBuilder::for(Client::class)
+        ->allowedFilters([
+            AllowedFilter::partial('surnom'),    // Filtrage partiel par surnom
+            AllowedFilter::partial('telephone_portable'), // Filtrage partiel par telephone_portable
+            AllowedFilter::exact('user_id'),  // Filtrage exact par user_id
+        ])
+        ->allowedSorts([
+            'surnom', 'telephone_portable', 'created_at'     // Trie par nom, prénom ou date de création
+        ])
+        ->with('user')                        // Eager Loading pour la relation 'user'
+        ->paginate(10);                       // Pagination
 
-        // Eager Loading : Récupère les clients avec leurs utilisateurs associés
-        $clients = Client::with('user')->paginate(10);
-
-        // Retourne une collection ou une ressource JSON
-        return response()->json($clients);
+    // Retourne une collection paginée sous forme de JSON
+    return response()->json($clients);
     }
 
     public function show($id)
     {
-        // Lazy Loading : Récupère uniquement le client
-        $client = Client::findOrFail($id);
-
-        // Eager Loading : Récupère le client avec son utilisateur associé
-        $client = Client::with('user')->findOrFail($id);
+        
+        /* return response()->json($client); */
+        $client = QueryBuilder::for(Client::class)
+        ->with('user')                        // Eager Loading pour la relation 'user'
+        ->findOrFail($id);
 
         return response()->json($client);
     }
