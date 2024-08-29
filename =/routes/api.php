@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\ClientController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -35,4 +35,13 @@ Route::prefix('v1')->group(function () {
     Route::put('users/{id}', [UserController::class, 'update']);
     Route::patch('users/{id}', [UserController::class, 'update']);
     Route::delete('users/{id}', [UserController::class, 'destroy']);
+});
+
+Route::prefix('v1')->group(function () {
+    Route::get('clients', [ClientController::class, 'index']);
+    Route::get('clients/{id}', [ClientController::class, 'show']);
+    Route::post('clients', [ClientController::class, 'store']);
+    Route::put('clients/{id}', [ClientController::class, 'update']);
+    Route::patch('clients/{id}', [ClientController::class, 'update']);
+    Route::delete('clients/{id}', [ClientController::class, 'destroy']);
 });
