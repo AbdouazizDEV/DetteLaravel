@@ -43,4 +43,11 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    use HasFactory, Notifiable;
+
+    // Définition de la relation 1-to-1 inverse
+    public function client()
+    {
+        return $this->hasOne(Client::class);
+    }
 }
