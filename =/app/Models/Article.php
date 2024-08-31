@@ -4,8 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = ['libelle', 'prix', 'qteStock'];
+
+    protected $dates = ['deleted_at'];
+
+    // Masquer les champs suivants lors de la conversion en JSON
+    protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
+    
 }

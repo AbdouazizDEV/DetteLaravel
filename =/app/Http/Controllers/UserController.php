@@ -10,11 +10,28 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 class UserController extends Controller
 {
-    public function index(){
-        return User::all();
-        // Retourne tous les utilisateurs
-        //
+    public function index(Request $request)
+{
+    // Utilisation de QueryBuilder pour gérer les filtres et la pagination
+    $users = \App\Models\User::query();
+
+    if ($request->has('role')) {
+        $users->where('role', $request->role);
     }
+
+    if ($request->has('active')) {
+        $activeStatus = $request->active === 'oui' ? 1 : 0;
+        $users->where('active', $activeStatus);
+    }
+
+    $result = $users->paginate(10);
+
+    return response()->json([
+        'message' => $result->isEmpty() ? 'Aucun utilisateur trouvé.' : 'Liste des utilisateurs.',
+        'data' => $result->isEmpty() ? null : $result
+    ]);
+}
+
     public function show($id){
     
         
@@ -34,13 +51,15 @@ class UserController extends Controller
             'login' => $request->login,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'active' => $request->active
         ]);
     
         return response()->json([
             'message' => 'Utilisateur créé avec succès.',
-            'user' => $user
+            'data' => $user
         ], 201);
     }
+    
     
     public function update(UpdateUserRequest $request, $id)
     {

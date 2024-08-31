@@ -23,6 +23,7 @@ class UserFactory extends Factory
             'login' => $this->faker->unique()->userName(),
             'password' => bcrypt('password'), // Mot de passe par défaut
             'role' => $this->faker->randomElement(['admin', 'boutiquier']),
+            'active' => $this->faker->boolean(),
         ];
     }
 

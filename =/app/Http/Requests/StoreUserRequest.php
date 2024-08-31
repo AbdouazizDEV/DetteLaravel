@@ -28,7 +28,7 @@ class StoreUserRequest extends FormRequest
             'password' => [
                 'required',
                 'string',
-                'min:8',
+                'min:5',  // Ajusté à 5 caractères minimum
                 'regex:/[a-z]/',
                 'regex:/[A-Z]/',
                 'regex:/[0-9]/',
@@ -41,6 +41,7 @@ class StoreUserRequest extends FormRequest
             ],
         ];
     }
+
 
     public function messages()
     {
