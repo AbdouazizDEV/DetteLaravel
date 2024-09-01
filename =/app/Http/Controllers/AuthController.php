@@ -27,14 +27,15 @@ class AuthController extends Controller
 
         // Authentification
         if (Auth::attempt(['login' => $request->login, 'password' => $request->password])) {
-            $user = User::find(Auth::user()->id);
-            $token = $user->createToken('MyAppToken')->plainTextToken; 
+            /**  @var \App\Models\User $user **/
+            $user = Auth::user();
+            $token = $user->createToken('MyAppToken')->accessToken; // Utilisation de Passport
+
             return response()->json(['status' => 200, 'data' => ['token' => $token], 'message' => 'Login Successful']);
         } else {
             return response()->json(['status' => 401, 'data' => null, 'message' => 'Invalid Credentials'], 401);
         }
     }
-
     // Méthode pour gérer l'enregistrement
     public function register(Request $request)
     {
@@ -55,7 +56,7 @@ class AuthController extends Controller
             'photo' => $request->photo ? $request->photo->store('photos') : null,
         ]);
 
-        $token = $user->createToken('MyAppToken')->plainTextToken;
+        $token = $user->createToken('MyAppToken')->accessToken;
 
         return response()->json([
             'token' => $token,

@@ -30,7 +30,7 @@ Route::prefix('v1')->group(function () {
     Route::post('register', [AuthController::class,'register']); // Register
 });
 
-Route::prefix('v1')->group(function () {
+Route::middleware(['auth:api','role:admin'])->prefix('v1')->group(function () {
     Route::get('users', [UserController::class, 'index']);// récupération de tous les users
     Route::get('users/{id}', [UserController::class, 'show']);// récupération d'un user
     Route::post('users', [UserController::class, 'store']);// Ajouter une user
@@ -39,9 +39,11 @@ Route::prefix('v1')->group(function () {
     Route::delete('users/{id}', [UserController::class, 'destroy']);// Supprimer un user
 });
 
-Route::prefix('v1')->group(function () {
+Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function () {
     Route::get('clients', [ClientController::class, 'index']);  // Récupérer tous les clients avec filtrage, tri et pagination
     Route::get('clients/{id}', [ClientController::class, 'show']);  // Récupérer un client spécifique
+    Route::post('clients/{id}/dettes', [ClientController::class, 'listDettes']);  // Récupérer les dettes d'un client
+    Route::post('clients/{id}/user', [ClientController::class, 'showWithUser']);  // Récupérer un client avec son user
     Route::get('clients/telephone', [ClientController::class,'searchByTelephone']);  // Rechercher un client par numéro de téléphone (partial search)
     Route::post('clients', [ClientController::class, 'store']);  // Ajouter un nouveau client
     Route::put('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour un client spécifique
@@ -50,9 +52,10 @@ Route::prefix('v1')->group(function () {
 });
 //les routes pour Article
 
-Route::prefix('v1')->group(function () {
+Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function () {
     Route::get('articles', [ArticleController::class, 'index']);  // Récupérer tous les articles
     Route::get('articles/{id}', [ArticleController::class, 'show']);  // Récupérer un article spécifique
+    Route::post('articles/libelle', [ArticleController::class, 'findByLibelle']);  // Récupérer un article par son libelle
     Route::post('articles', [ArticleController::class, 'store']);  // Ajouter un nouvel article
     Route::put('articles/{id}', [ArticleController::class, 'update']);  // Mettre à jour un article spécifique
     Route::patch('articles/{id}', [ArticleController::class, 'update']);  // Mettre à jour partiellement un article spécifique
