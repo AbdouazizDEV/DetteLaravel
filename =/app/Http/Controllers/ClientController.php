@@ -16,9 +16,53 @@ use Spatie\QueryBuilder\AllowedSort;
 use Illuminate\Support\Facades\Auth;
 
 
-
 class ClientController extends Controller
 {
+     /**
+     * @OA\Get(
+     *     path="/v1/clients",
+     *     summary="Récupérer tous les clients",
+     *     description="Permet de récupérer la liste de tous les clients avec filtrage, tri et pagination",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Numéro de la page",
+     *         required=false,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort",
+     *         in="query",
+     *         description="Tri des résultats",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="filter",
+     *         in="query",
+     *         description="Filtrage des résultats",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Liste des clients",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", example="client@example.com")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Non autorisé"
+     *     )
+     * )
+     */
+    
     public function index(Request $request)
     {
         // Initialisation de la requête de base
@@ -72,6 +116,74 @@ class ClientController extends Controller
             'message' => 'Liste des clients récupérée avec succès.'
         ]);
     }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/clients/{id}",
+     *     summary="Récupérer un client spécifique",
+     *     description="Permet de récupérer un client par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client récupéré",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client non trouvé"
+     *     )
+     * )
+     */
+
+    public function show($id)
+    {
+        
+        /* return response()->json($client); */
+        $client = QueryBuilder::for(Client::class)
+        ->with('user')                        // Eager Loading pour la relation 'user'
+        ->findOrFail($id);
+
+        return response()->json($client);
+    }
+
+       /**
+     * @OA\Get(
+     *     path="/v1/clients/telephone",
+     *     summary="Rechercher un client par numéro de téléphone",
+     *     description="Permet de rechercher un client par numéro de téléphone (partial search)",
+     *     @OA\Parameter(
+     *         name="telephone",
+     *         in="query",
+     *         description="Numéro de téléphone",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client trouvé",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="123-456-7890")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client non trouvé"
+     *     )
+     * )
+     */
+
     public function searchByTelephone( $telephone)
     {
        // $telephone = $request->input('telephone');
@@ -94,17 +206,35 @@ class ClientController extends Controller
         ]);
     }
     
-
-    public function show($id)
-    {
-        
-        /* return response()->json($client); */
-        $client = QueryBuilder::for(Client::class)
-        ->with('user')                        // Eager Loading pour la relation 'user'
-        ->findOrFail($id);
-
-        return response()->json($client);
-    }
+ /**
+     * @OA\Post(
+     *     path="/v1/clients",
+     *     summary="Ajouter un nouveau client",
+     *     description="Permet d'ajouter un nouveau client",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="123-456-7890")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Client créé",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="123-456-7890")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Échec de la création du client"
+     *     )
+     * )
+     */
 
     public function store(Request $request)
     {
@@ -211,8 +341,36 @@ class ClientController extends Controller
             ], 201);
         }
     }
-    
-    
+    /**
+     * @OA\Post(
+     *     path="/v1/clients/{id}/dettes",
+     *     summary="Récupérer les dettes d'un client",
+     *     description="Permet de récupérer les dettes d'un client par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Dettes du client récupérées",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="amount", type="number", example=100.00),
+     *                 @OA\Property(property="due_date", type="string", example="2023-12-31")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client non trouvé"
+     *     )
+     * )
+     */
+
     public function listDettes($id)
     {
         $client = Client::find($id);
@@ -237,30 +395,98 @@ class ClientController extends Controller
             ], 411);
         }
     }
-    
-  public function showWithUser($id)
-{
-    $client = Client::find($id);
 
-    if ($client) {
-        $user = $client->user;  // Assuming there's a relation defined in the Client model
+    /**
+     * @OA\Post(
+     *     path="/v1/clients/{id}/user",
+     *     summary="Récupérer un client avec son user",
+     *     description="Permet de récupérer un client avec son user par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client avec son user récupéré",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com"),
+     *             @OA\Property(property="user", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="John User"),
+     *                 @OA\Property(property="email", type="string", example="user@example.com")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client non trouvé"
+     *     )
+     * )
+     */
 
-        return response()->json([
-            'status' => 200,
-            'data' => [
-                'client' => $client,
-                'user' => $user
-            ],
-            'message' => 'Client trouvé',
-        ], 200);
-    } else {
-        return response()->json([
-            'status' => 411,
-            'data' => null,
-            'message' => 'Objet non trouvé',
-        ], 411);
+    public function showWithUser($id)
+    {
+        $client = Client::find($id);
+
+        if ($client) {
+            $user = $client->user;  // Assuming there's a relation defined in the Client model
+
+            return response()->json([
+                'status' => 200,
+                'data' => [
+                    'client' => $client,
+                    'user' => $user
+                ],
+                'message' => 'Client trouvé',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé',
+            ], 411);
+        }
     }
-}
+
+    /**
+     * @OA\Put(
+     *     path="/v1/clients/{id}",
+     *     summary="Mettre à jour un client spécifique",
+     *     description="Permet de mettre à jour un client par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="123-456-7890")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client mis à jour",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="client@example.com"),
+     *             @OA\Property(property="telephone", type="string", example="123-456-7890")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client non trouvé"
+     *     )
+     * )
+     */
 
     public function update(ValidateClientUpdateRequest $request, $id)
     {
@@ -268,6 +494,29 @@ class ClientController extends Controller
         $client->update($request->validated());
         return response()->json(['message' => 'Client mis à jour avec succès', 'client' => $client]);
     }
+
+    /**
+     * @OA\Delete(
+     *     path="/v1/clients/{id}",
+     *     summary="Supprimer un client spécifique",
+     *     description="Permet de supprimer un client par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Client supprimé"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Client non trouvé"
+     *     )
+     * )
+     */
+    
     public function destroy($id)
     {
         $client = Client::findOrFail($id);

@@ -16,6 +16,30 @@ use Spatie\QueryBuilder\AllowedSort;
 class ArticleController extends Controller
 {
     use ApiResponse;
+    /**
+     * @OA\Get(
+     *     path="/v1/articles",
+     *     summary="Récupérer tous les articles",
+     *     description="Permet de récupérer la liste de tous les articles",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Liste des articles",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="libelle", type="string", example="Article 1"),
+     *                 @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *                 @OA\Property(property="stock", type="integer", example=100)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Non autorisé"
+     *     )
+     * )
+     */
     // GET /api/v1/articles : Récupérer tous les articles
     public function index(Request $request)
     {
@@ -40,6 +64,33 @@ class ArticleController extends Controller
     }
 
 
+    /**
+     * @OA\Get(
+     *     path="/v1/articles/{id}",
+     *     summary="Récupérer un article spécifique",
+     *     description="Permet de récupérer un article par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article récupéré",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="libelle", type="string", example="Article 1"),
+     *             @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *             @OA\Property(property="stock", type="integer", example=100)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article non trouvé"
+     *     )
+     * )
+     */
     // GET /api/v1/articles/{id} : Récupérer un article spécifique
     public function show($id)
     {
@@ -59,6 +110,35 @@ class ArticleController extends Controller
             ], 411);
         }
     }
+    /**
+     * @OA\Post(
+     *     path="/v1/articles",
+     *     summary="Ajouter un nouvel article",
+     *     description="Permet d'ajouter un nouvel article",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="libelle", type="string", example="Article 1"),
+     *             @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *             @OA\Property(property="stock", type="integer", example=100)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Article créé",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="libelle", type="string", example="Article 1"),
+     *             @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *             @OA\Property(property="stock", type="integer", example=100)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Échec de la création de l'article"
+     *     )
+     * )
+     */
     // POST /api/v1/articles : Ajouter un nouvel article ou mettre à jour la quantité en stock
     public function store(StoreArticleRequest $request)
     {
@@ -79,6 +159,33 @@ class ArticleController extends Controller
             return $this->successResponse($article, 'Article ajouté avec succès.', 201);
         }
     }
+    /**
+     * @OA\Post(
+     *     path="/v1/articles/libelle",
+     *     summary="Récupérer un article par son libelle",
+     *     description="Permet de récupérer un article par son libelle",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="libelle", type="string", example="Article 1")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article récupéré",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="libelle", type="string", example="Article 1"),
+     *             @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *             @OA\Property(property="stock", type="integer", example=100)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article non trouvé"
+     *     )
+     * )
+     */
     public function findByLibelle(Request $request)
     {
         $libelle = $request->input('libelle');
@@ -98,7 +205,41 @@ class ArticleController extends Controller
             ], 411);
         }
     }
-    
+    /**
+     * @OA\Put(
+     *     path="/v1/articles/{id}",
+     *     summary="Mettre à jour un article spécifique",
+     *     description="Permet de mettre à jour un article par son ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="libelle", type="string", example="Article 1"),
+     *             @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *             @OA\Property(property="stock", type="integer", example=100)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article mis à jour",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="libelle", type="string", example="Article 1"),
+     *             @OA\Property(property="description", type="string", example="Description de l'article 1"),
+     *             @OA\Property(property="stock", type="integer", example=100)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article non trouvé"
+     *     )
+     * )
+     */
     // PUT|PATCH /api/v1/articles/{id} : Mettre à jour un article spécifique
     public function update(UpdateArticleRequest $request, $id)
     {
@@ -108,6 +249,27 @@ class ArticleController extends Controller
 
         return $this->successResponse($article, 'Article mis à jour avec succès.');
     }
+    /**
+     * @OA\Delete(
+     *     path="/v1/articles/{id}",
+     *     summary="Supprimer un article spécifique",
+     *     description="Permet de supprimer un article par son ID (soft delete)",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Article supprimé"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Article non trouvé"
+     *     )
+     * )
+     */
 
     // DELETE /api/v1/articles/{id} : Supprimer un article (Soft Delete)
     public function destroy($id)
@@ -117,6 +279,35 @@ class ArticleController extends Controller
 
         return $this->successResponse(null, 'Article supprimé avec succès.');
     }
+    /**
+     * @OA\Post(
+     *     path="/v1/articles/updateStock",
+     *     summary="Mettre à jour le stock des articles",
+     *     description="Permet de mettre à jour le stock des articles",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="articles", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="stock", type="integer", example=100)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Stock des articles mis à jour",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Stock updated successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Échec de la mise à jour du stock"
+     *     )
+     * )
+     */
     public function updateStock(Request $request)
     {
         $articleS = $request->article_S;
