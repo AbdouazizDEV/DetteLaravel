@@ -6,37 +6,213 @@ use Illuminate\Http\Request;
 use App\Models\Client;
 use App\Http\Requests\ValidateClientPostRequest;
 use App\Http\Requests\ValidateClientUpdateRequest;
+use App\Http\Requests\ValidateUserPostRequest;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\Validator;
+
+use Spatie\QueryBuilder\AllowedSort;
+use Illuminate\Support\Facades\Auth;
+
+
 
 class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        // Lazy Loading : Récupère uniquement les clients
-        $clients = Client::paginate(10); // Pagination
+        // Initialisation de la requête de base
+        $query = QueryBuilder::for(Client::class)
+            ->allowedFilters([
+                AllowedFilter::partial('surnom'),    // Filtrage partiel par surnom
+                AllowedFilter::partial('telephone_portable'), // Filtrage partiel par telephone_portable
+                AllowedFilter::exact('user_id'),  // Filtrage exact par user_id
+            ])
+            ->allowedSorts([
+                'surnom', 'telephone_portable', 'created_at'     // Trie par surnom, téléphone ou date de création
+            ])
+            ->with('user');  // Eager Loading pour la relation 'user'
 
-        // Eager Loading : Récupère les clients avec leurs utilisateurs associés
-        $clients = Client::with('user')->paginate(10);
+        // Filtrage par compte (comptes actifs ou non)
+        $compte = $request->query('compte');
+        if ($compte === 'oui') {
+            $query->whereHas('user');  // Filtrer les clients qui ont un compte utilisateur
+        } elseif ($compte === 'non') {
+            $query->whereDoesntHave('user');  // Filtrer les clients sans compte utilisateur
+        }
 
-        // Retourne une collection ou une ressource JSON
-        return response()->json($clients);
+        // Filtrage par état du compte (actif ou désactivé)
+        $active = $request->query('active');
+        if ($active === 'oui') {
+            $query->whereHas('user', function($q) {
+                $q->where('active', true);  // Filtrer les clients avec des comptes actifs
+            });
+        } elseif ($active === 'non') {
+            $query->whereHas('user', function($q) {
+                $q->where('active', false);  // Filtrer les clients avec des comptes désactivés
+            });
+        }
+
+        // Pagination
+        $clients = $query->paginate(5);
+
+        // Vérification si la collection de clients est vide
+        if ($clients->isEmpty()) {
+            return response()->json([
+                'status' => 200,
+                'data' => null,
+                'message' => 'Pas de clients trouvés'
+            ]);
+        }
+
+        // Retourne une collection paginée sous forme de JSON
+        return response()->json([
+            'status' => 200,
+            'data' => $clients,
+            'message' => 'Liste des clients récupérée avec succès.'
+        ]);
     }
+    public function searchByTelephone( $telephone)
+    {
+       // $telephone = $request->input('telephone');
+    
+        // Rechercher le client par numéro de téléphone
+        $client = Client::where('telephone_portable', $telephone)->first();
+    
+        if (!$client) {
+            return response()->json([
+                'status' => 404,
+                'data' => null,
+                'message' => 'Client non trouvé'
+            ], 404);
+        }
+    
+        return response()->json([
+            'status' => 200,
+            'data' => $client,
+            'message' => 'Client trouvé'
+        ]);
+    }
+    
 
     public function show($id)
     {
-        // Lazy Loading : Récupère uniquement le client
-        $client = Client::findOrFail($id);
-
-        // Eager Loading : Récupère le client avec son utilisateur associé
-        $client = Client::with('user')->findOrFail($id);
+        
+        /* return response()->json($client); */
+        $client = QueryBuilder::for(Client::class)
+        ->with('user')                        // Eager Loading pour la relation 'user'
+        ->findOrFail($id);
 
         return response()->json($client);
     }
 
-    public function store(ValidateClientPostRequest $request)
+    public function store(Request $request)
     {
-        $client = Client::create($request->validated());
-        return response()->json(['message' => 'Client ajouté avec succès', 'client' => $client], 201);
+        $client = null;
+        $user = null;
+    
+        // Vérifiez si l'ID du client est fourni pour une mise à jour
+        if ($request->has('client_id')) {
+            // Recherchez le client dans la base de données
+            $client = Client::find($request->input('client_id'));
+    
+            if (!$client) {
+                return response()->json(['message' => 'Client non trouvé'], 404);
+            }
+    
+            // Si un utilisateur est inclus dans la requête, validez les données de l'utilisateur
+            if ($request->has('user')) {
+                $userRequest = new ValidateUserPostRequest($request->input('user'));
+    
+                $userValidator = Validator::make(
+                    $userRequest->input(),
+                    $userRequest->rules(),
+                    $userRequest->messages()
+                );
+    
+                if ($userValidator->fails()) {
+                    return response()->json([
+                        'message' => 'Erreur de validation de l\'utilisateur',
+                        'errors' => $userValidator->errors()
+                    ], 411);
+                }
+    
+                // Créer l'utilisateur
+                $userData = $userValidator->validated();
+                $userData['password'] = bcrypt($userData['password']);
+                $user = \App\Models\User::create($userData);
+    
+                // Associez l'utilisateur au client
+                $client->user_id = $user->id;
+                $client->save();
+            }
+    
+            return response()->json([
+                'message' => 'Compte utilisateur ajouté au client existant avec succès',
+                'data' => [
+                    'client' => $client,
+                    'user' => $user
+                ]
+            ], 201);
+    
+        } else {
+            // Si client_id n'est pas fourni, alors c'est une nouvelle création de client
+            $clientRequest = new ValidateClientPostRequest($request->all());
+    
+            $clientValidator = Validator::make(
+                $clientRequest->input(),
+                $clientRequest->rules(),
+                $clientRequest->messages()
+            );
+    
+            if ($clientValidator->fails()) {
+                return response()->json([
+                    'message' => 'Erreur de validation',
+                    'errors' => $clientValidator->errors()
+                ], 411);
+            }
+    
+            // Créez le client
+            $validatedClientData = $clientValidator->validated();
+            $client = Client::create($validatedClientData);
+    
+            // Si un utilisateur est inclus, créez également l'utilisateur
+            if ($request->has('user')) {
+                $userRequest = new ValidateUserPostRequest($request->input('user'));
+    
+                $userValidator = Validator::make(
+                    $userRequest->input(),
+                    $userRequest->rules(),
+                    $userRequest->messages()
+                );
+    
+                if ($userValidator->fails()) {
+                    return response()->json([
+                        'message' => 'Erreur de validation de l\'utilisateur',
+                        'errors' => $userValidator->errors()
+                    ], 411);
+                }
+    
+                $userData = $userValidator->validated();
+                $userData['password'] = bcrypt($userData['password']);
+                $user = \App\Models\User::create($userData);
+    
+                // Associez l'utilisateur au client
+                $client->user_id = $user->id;
+                $client->save();
+            }
+    
+            return response()->json([
+                'message' => 'Client enregistré avec succès',
+                'data' => [
+                    'client' => $client,
+                    'user' => $user
+                ]
+            ], 201);
+        }
     }
+    
+    
+
   
     public function update(ValidateClientUpdateRequest $request, $id)
     {

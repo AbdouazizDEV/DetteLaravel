@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('article_S', function (Blueprint $table) {
             $table->id();
-            $table->string('nom')->nullable()->change();
-            $table->string('prenom');
-            $table->string('login')->unique();
-            $table->string('password');
-            $table->enum('role', ['admin', 'boutiquier']);
-            $table->boolean('active')->default(true);
+            $table->foreignId('article_id')->constrained('articles')->onDelete('cascade'); // Référence à la table articles
+            $table->integer('qteS'); // Quantité à diminuer
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('article_S');
     }
 };
