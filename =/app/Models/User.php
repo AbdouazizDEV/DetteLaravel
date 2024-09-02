@@ -22,7 +22,16 @@ class User extends Authenticatable
         'login',
         'password',
     ];
-
+    public function withAccessToken($token)
+    {
+        return [
+            'id' => $this->id,
+            'nom' => $this->nom,
+            'login' => $this->login,
+            'role' => $this->role,
+            // Ajoutez ici d'autres informations que vous souhaitez inclure dans le token
+        ];
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
