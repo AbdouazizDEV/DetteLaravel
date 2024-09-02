@@ -43,10 +43,22 @@ class ArticleController extends Controller
     // GET /api/v1/articles/{id} : Récupérer un article spécifique
     public function show($id)
     {
-        $article = Article::findOrFail($id);
-        return $this->successResponse($article, 'Article récupéré avec succès.');
-    }
+        $article = Article::find($id);
 
+        if ($article) {
+            return response()->json([
+                'status' => 200,
+                'data' => $article,
+                'message' => 'Article trouvé',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé',
+            ], 411);
+        }
+    }
     // POST /api/v1/articles : Ajouter un nouvel article ou mettre à jour la quantité en stock
     public function store(StoreArticleRequest $request)
     {
@@ -67,7 +79,26 @@ class ArticleController extends Controller
             return $this->successResponse($article, 'Article ajouté avec succès.', 201);
         }
     }
-
+    public function findByLibelle(Request $request)
+    {
+        $libelle = $request->input('libelle');
+        $article = Article::where('libelle', $libelle)->first();
+    
+        if ($article) {
+            return response()->json([
+                'status' => 200,
+                'data' => $article,
+                'message' => 'Article trouvé',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé',
+            ], 411);
+        }
+    }
+    
     // PUT|PATCH /api/v1/articles/{id} : Mettre à jour un article spécifique
     public function update(UpdateArticleRequest $request, $id)
     {

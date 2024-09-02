@@ -10,6 +10,7 @@ use App\Http\Requests\ValidateUserPostRequest;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Dette;
 
 use Spatie\QueryBuilder\AllowedSort;
 use Illuminate\Support\Facades\Auth;
@@ -212,8 +213,55 @@ class ClientController extends Controller
     }
     
     
+    public function listDettes($id)
+    {
+        $client = Client::find($id);
+    
+        if ($client) {
+            // Récupérer les dettes du client sans détails
+            $dettes = Dette::where('client_id', $id)->get(['id', 'date', 'montant', 'montantRestant']);
+    
+            return response()->json([
+                'status' => 200,
+                'data' => [
+                    'client' => $client,
+                    'dettes' => $dettes->isNotEmpty() ? $dettes : null
+                ],
+                'message' => 'Client trouvé',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé',
+            ], 411);
+        }
+    }
+    
+  public function showWithUser($id)
+{
+    $client = Client::find($id);
 
-  
+    if ($client) {
+        $user = $client->user;  // Assuming there's a relation defined in the Client model
+
+        return response()->json([
+            'status' => 200,
+            'data' => [
+                'client' => $client,
+                'user' => $user
+            ],
+            'message' => 'Client trouvé',
+        ], 200);
+    } else {
+        return response()->json([
+            'status' => 411,
+            'data' => null,
+            'message' => 'Objet non trouvé',
+        ], 411);
+    }
+}
+
     public function update(ValidateClientUpdateRequest $request, $id)
     {
         $client = Client::findOrFail($id);
