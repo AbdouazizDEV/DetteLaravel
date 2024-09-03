@@ -1,0 +1,362 @@
+openapi: 3.0.0
+info:
+  title: API de Gestion des Dettes
+  description: API pour la gestion des utilisateurs, des clients et des articles.
+  version: 1.0.0
+  contact:
+    email: contact@votre-domaine.com
+servers:
+  - url: http://127.0.0.1:8000/wane
+    description: Local server
+  - url: http://production.app/wane
+    description: Production server
+paths:
+  /v1/login:
+    post:
+      summary: Authentification de l'utilisateur
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "200":
+          description: Succès de l'authentification
+        "401":
+          description: Erreur d'authentification
+  /v1/logout:
+    post:
+      summary: Déconnexion de l'utilisateur
+      tags:
+        - Authentification
+      responses:
+        "200":
+          description: Succès de la déconnexion
+  /v1/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags:
+        - Authentification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "201":
+          description: Utilisateur créé avec succès
+        "400":
+          description: Erreur dans les données fournies
+  /v1/users:
+    get:
+      summary: Récupération de tous les utilisateurs
+      tags:
+        - Utilisateurs
+      responses:
+        "200":
+          description: Liste des utilisateurs
+    post:
+      summary: Création d'un utilisateur
+      tags:
+        - Utilisateurs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "201":
+          description: Utilisateur créé
+        "400":
+          description: Erreur dans les données fournies
+  /v1/users/{id}:
+    get:
+      summary: Récupération d'un utilisateur spécifique
+      tags:
+        - Utilisateurs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Utilisateur récupéré
+        "404":
+          description: Utilisateur non trouvé
+    put:
+      summary: Mise à jour d'un utilisateur
+      tags:
+        - Utilisateurs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  example: user@example.com
+      responses:
+        "200":
+          description: Utilisateur mis à jour
+        "400":
+          description: Erreur dans les données fournies
+    delete:
+      summary: Suppression d'un utilisateur
+      tags:
+        - Utilisateurs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Utilisateur supprimé
+  /v1/clients:
+    get:
+      summary: Récupération de tous les clients
+      tags:
+        - Clients
+      responses:
+        "200":
+          description: Liste des clients
+    post:
+      summary: Création d'un nouveau client
+      tags:
+        - Clients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  example: Dupont
+                prenom:
+                  type: string
+                  example: Jean
+                telephone:
+                  type: string
+                  example: "778123456"
+      responses:
+        "201":
+          description: Client créé avec succès
+        "400":
+          description: Erreur dans les données fournies
+  /v1/clients/{id}:
+    get:
+      summary: Récupération d'un client spécifique
+      tags:
+        - Clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client récupéré
+        "404":
+          description: Client non trouvé
+    put:
+      summary: Mise à jour d'un client
+      tags:
+        - Clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  example: Dupont
+                prenom:
+                  type: string
+                  example: Jean
+      responses:
+        "200":
+          description: Client mis à jour
+        "400":
+          description: Erreur dans les données fournies
+    delete:
+      summary: Suppression d'un client
+      tags:
+        - Clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Client supprimé
+  /v1/clients/telephone:
+    get:
+      summary: Recherche d'un client par numéro de téléphone
+      tags:
+        - Clients
+      parameters:
+        - name: telephone
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "778123456"
+      responses:
+        "200":
+          description: Client trouvé
+        "404":
+          description: Client non trouvé
+  /v1/articles:
+    get:
+      summary: Récupération de tous les articles
+      tags:
+        - Articles
+      responses:
+        "200":
+          description: Liste des articles
+    post:
+      summary: Création d'un nouvel article
+      tags:
+        - Articles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  example: Stylo
+                prix:
+                  type: number
+                  example: 500
+      responses:
+        "201":
+          description: Article créé avec succès
+        "400":
+          description: Erreur dans les données fournies
+  /v1/articles/{id}:
+    get:
+      summary: Récupération d'un article spécifique
+      tags:
+        - Articles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Article récupéré
+        "404":
+          description: Article non trouvé
+    put:
+      summary: Mise à jour d'un article
+      tags:
+        - Articles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  example: Stylo
+                prix:
+                  type: number
+                  example: 500
+      responses:
+        "200":
+          description: Article mis à jour
+        "400":
+          description: Erreur dans les données fournies
+    delete:
+      summary: Suppression d'un article
+      tags:
+        - Articles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Article supprimé
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
