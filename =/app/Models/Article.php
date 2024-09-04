@@ -9,7 +9,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Article extends Model
 {
     use HasFactory, SoftDeletes;
-
+    // Définir les scopes globaux
+        protected static function booted()
+        {
+            static::addGlobalScope('quantity', function ($query) {
+                $query->where('quantite_stock', '>', 0);
+            });
+        }
     protected $fillable = ['libelle', 'prix', 'qteStock'];
 
     protected $dates = ['deleted_at'];
