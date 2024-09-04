@@ -21,8 +21,10 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        
     ];
-
+    
+    
     /**
      * The application's route middleware groups.
      *
@@ -36,6 +38,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\JsonResponseMiddleware::class,
         ],
 
         'api' => [
@@ -44,6 +47,8 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
+    
+    
 
     /**
      * The application's middleware aliases.
@@ -55,6 +60,8 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         // ...
         'role' => \App\Http\Middleware\CheckRole::class,
+        'api.response' => \App\Http\Middleware\ApiResponseMiddleware::class,
+
     ];
     protected $middlewareAliases = [
         'auth' => \App\Http\Middleware\Authenticate::class,
