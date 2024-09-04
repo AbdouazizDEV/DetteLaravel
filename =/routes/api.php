@@ -45,7 +45,7 @@ Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function 
     Route::post('clients/{id}/dettes', [ClientController::class, 'listDettes']);  // Récupérer les dettes d'un client
     Route::post('clients/{id}/user', [ClientController::class, 'showWithUser']);  // Récupérer un client avec son user
     Route::get('clients/telephone', [ClientController::class,'searchByTelephone']);  // Rechercher un client par numéro de téléphone (partial search)
-    Route::post('clients', [ClientController::class, 'store']);  // Ajouter un nouveau client
+    Route::post('clients', [ClientController::class, 'store'])->name('clients.show')->middleware('client.photo');  // Ajouter un nouveau client
     Route::put('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour un client spécifique
     Route::patch('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour partiellement un client spécifique
     Route::delete('clients/{id}', [ClientController::class, 'destroy']);  // Supprimer un client spécifique

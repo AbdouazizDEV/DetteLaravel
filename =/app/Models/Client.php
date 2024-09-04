@@ -11,7 +11,7 @@ class Client extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+   
     // Définir les scopes globaux
     protected static function booted()
     {
@@ -42,8 +42,9 @@ class Client extends Model
             $q->where('active', false);
         });
     }
+    protected $fillable = ['surnom', 'telephone_portable', 'adresse', 'avatar', 'user_id'];
 
-    protected $fillable = ['surnom', 'telephone_portable', 'user_id'];
+    
 
     protected $hidden = ['created_at', 'updated_at'];
 

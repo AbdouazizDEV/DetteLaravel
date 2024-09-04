@@ -8,202 +8,88 @@ use App\Http\Requests\ValidateClientPostRequest;
 use App\Http\Requests\ValidateClientUpdateRequest;
 use App\Http\Requests\ValidateUserPostRequest;
 use Illuminate\Support\Facades\Validator;
-use App\Services\Contracts\UploadServiceInterface;
-
+use App\Models\Client;
+use App\Services\Contracts\ClientServiceInterface;
 class ClientController extends Controller
 {
-    protected $uploadService;
+     
+    protected $clientService;
 
-    public function __construct(UploadServiceInterface $uploadService)
+    
+    public function __construct(ClientServiceInterface $clientService)
     {
-        $this->uploadService = $uploadService;
+        $this->clientService = $clientService;
+        $this->middleware('api.response');
+        
     }
-
     public function index(Request $request)
     {
-        $active = $request->query('active');
-        $clients = ClientServiceFacade::all($active);
-
-        if ($clients->isEmpty()) {
-            return response()->json([
-                'status' => 200,
-                'data' => null,
-                'message' => 'Pas de clients trouvés'
-            ]);
-        }
-
+        $clients = $this->clientService->getAllClients($request);
+        
         return response()->json([
             'status' => 200,
             'data' => $clients,
-            'message' => 'Liste des clients récupérée avec succès.'
+            'message' => 'Clients retrieved successfully'
         ]);
     }
 
     public function show($id)
     {
-        $client = ClientServiceFacade::find($id);
-        return response()->json($client);
-    }
-
-    public function searchByTelephone($telephone)
-    {
-        $client = ClientServiceFacade::searchByTelephone($telephone);
+        $client = $this->clientService->getClientById($id);
 
         if (!$client) {
             return response()->json([
                 'status' => 404,
-                'data' => null,
-                'message' => 'Client non trouvé'
+                'message' => 'Client not found'
             ], 404);
         }
 
         return response()->json([
             'status' => 200,
             'data' => $client,
-            'message' => 'Client trouvé'
+            'message' => 'Client retrieved successfully'
         ]);
     }
 
+    public function searchByTelephone($telephone)
+    {
+        $client = ClientServiceFacade::searchByTelephone($telephone);
+        return response()->json($client);
+    }
+
+  
+
     public function store(Request $request)
     {
-        $client = null;
-        $user = null;
-
-        if ($request->has('client_id')) {
-            $client = ClientServiceFacade::find($request->input('client_id'));
-
-            if (!$client) {
-                return response()->json(['message' => 'Client non trouvé'], 404);
-            }
-
-            if ($request->has('user')) {
-                $userRequest = new ValidateUserPostRequest($request->input('user'));
-
-                $userValidator = Validator::make(
-                    $userRequest->input(),
-                    $userRequest->rules(),
-                    $userRequest->messages()
-                );
-
-                if ($userValidator->fails()) {
-                    return response()->json([
-                        'message' => 'Erreur de validation de l\'utilisateur',
-                        'errors' => $userValidator->errors()
-                    ], 411);
-                }
-
-                $userData = $userValidator->validated();
-                $userData['password'] = bcrypt($userData['password']);
-                $user = \App\Models\User::create($userData);
-
-                $client->user_id = $user->id;
-                $client->save();
-            }
-
-            return response()->json([
-                'message' => 'Compte utilisateur ajouté au client existant avec succès',
-                'data' => [
-                    'client' => $client,
-                    'user' => $user
-                ]
-            ], 201);
-
-        } else {
-            $clientRequest = new ValidateClientPostRequest($request->all());
-
-            $clientValidator = Validator::make(
-                $clientRequest->input(),
-                $clientRequest->rules(),
-                $clientRequest->messages()
-            );
-
-            if ($clientValidator->fails()) {
-                return response()->json([
-                    'message' => 'Erreur de validation',
-                    'errors' => $clientValidator->errors()
-                ], 411);
-            }
-
-            $validatedClientData = $clientValidator->validated();
-
-            // Upload image
-            if ($request->hasFile('image')) {
-                $imagePath = $this->uploadService->upload(['image' => $request->file('image')]);
-                $validatedClientData['photo'] = $imagePath;
-            }
-
-            $client = ClientServiceFacade::create($validatedClientData);
-
-            if ($request->has('user')) {
-                $userRequest = new ValidateUserPostRequest($request->input('user'));
-
-                $userValidator = Validator::make(
-                    $userRequest->input(),
-                    $userRequest->rules(),
-                    $userRequest->messages()
-                );
-
-                if ($userValidator->fails()) {
-                    return response()->json([
-                        'message' => 'Erreur de validation de l\'utilisateur',
-                        'errors' => $userValidator->errors()
-                    ], 411);
-                }
-
-                $userData = $userValidator->validated();
-                $userData['password'] = bcrypt($userData['password']);
-                $user = \App\Models\User::create($userData);
-
-                $client->user_id = $user->id;
-                $client->save();
-            }
-
-            return response()->json([
-                'message' => 'Client enregistré avec succès',
-                'data' => [
-                    'client' => $client,
-                    'user' => $user
-                ]
-            ], 201);
-        }
+        $client = $this->clientService->storeClient($request->all());
+        return response()->json([
+            'status' => 200,
+            'data' => $client,
+            'message' => 'Success'
+        ]);
     }
+
+    public function attachUser(Request $request)
+    {
+        $client = $this->clientService->attachUserToClient($request->client_id, $request->user);
+        return response()->json([
+            'status' => 200,
+            'data' => $client,
+            'message' => 'User attached successfully'
+        ]);
+    }
+    
 
     public function listDettes($id)
     {
         $result = ClientServiceFacade::listDettes($id);
-
-        if ($result) {
-            return response()->json([
-                'status' => 200,
-                'data' => $result,
-                'message' => 'Client trouvé',
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 411,
-                'data' => null,
-                'message' => 'Objet non trouvé',
-            ], 411);
-        }
+        return response()->json($result);
     }
 
     public function showWithUser($id)
     {
         $result = ClientServiceFacade::showWithUser($id);
-
-        if ($result) {
-            return response()->json([
-                'status' => 200,
-                'data' => $result,
-                'message' => 'Client trouvé',
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 411,
-                'data' => null,
-                'message' => 'Objet non trouvé',
-            ], 411);
-        }
+        return response()->json($result);
     }
 
     public function update(ValidateClientUpdateRequest $request, $id)
@@ -218,4 +104,3 @@ class ClientController extends Controller
         return response()->json(['message' => 'Client supprimé avec succès']);
     }
 }
-    
