@@ -45,7 +45,7 @@ class ClientService implements ClientServiceInterface
                 $user->save();
             }
         }
-
+        
         // Création du client
         $clientData = [
             'surnom' => $data['surnom'],
@@ -55,6 +55,9 @@ class ClientService implements ClientServiceInterface
             'avatar' => $userId ? null : ($data['avatar'] ?? null)
         ];
 
+        $client = $this->clientRepository->create($clientData);
+        $emailService = app(EmailService::class);
+        $emailService->sendFideliteEmail($client);
         return $this->clientRepository->create($clientData);
     }
 
