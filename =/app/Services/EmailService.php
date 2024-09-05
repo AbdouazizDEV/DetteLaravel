@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\FideliteEmail;
 
+
 class EmailService
 {
     protected $pdfService;
@@ -14,10 +15,11 @@ class EmailService
         $this->pdfService = $pdfService;
     }
 
-    public function sendFideliteEmail($user)
+    public function sendFideliteEmail($client)
     {
-        $pdfPath = $this->pdfService->generateUserPdf($user);
+        $pdfService = app(PdfService::class);
+        $pdfPath = $pdfService->generateUserPdf($client->user);
 
-        Mail::to($user->email)->send(new FideliteEmail($user, $pdfPath));
+        Mail::to($client->user->email)->send(new FideliteEmail($client, $pdfPath));
     }
 }
