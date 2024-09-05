@@ -27,12 +27,12 @@ class ClientRepository implements ClientRepositoryInterface
         return Client::find($id);
     }
 
-    public function create(array $data)
+    /* public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
             return Client::create($data);
         });
-    }
+    } */
 
     public function update($id, array $data)
     {
@@ -79,5 +79,9 @@ class ClientRepository implements ClientRepositoryInterface
             return ['client' => $client, 'user' => $user];
         }
         return null;
+    }
+    public function create(array $data): Client
+    {
+        return Client::create($data);
     }
 }

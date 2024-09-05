@@ -15,13 +15,14 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
+   /*  protected $fillable = [
         'nom',
         'prenom',
         'role',
         'login',
         'password',
-    ];
+    ]; */
+    protected $fillable = ['login', 'password', 'prenom', 'nom', 'photo','role'];
     public function withAccessToken($token)
     {
         return [
