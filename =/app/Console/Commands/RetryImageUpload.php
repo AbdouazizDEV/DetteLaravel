@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\User;
-use App\Jobs\UploadUserImageJob;
+use App\Jobs\FindLocalImagesJob;
 
 class RetryImageUpload extends Command
 {
@@ -32,34 +31,10 @@ class RetryImageUpload extends Command
      */
     public function handle()
     {
-        // Récupérer tous les utilisateurs qui ont une photo stockée localement (chemin local)
-        $users = User::where('photo', 'LIKE', '%/public/%')
-            ->where('photo', '!=', 'default_avatar.png')
-            ->get();
+        // Exécuter le job qui trouve toutes les images locales et déclenche leur upload
+        FindLocalImagesJob::dispatch();
 
-        // S'il n'y a aucun utilisateur avec une photo locale, afficher un message et terminer le script
-        if ($users->isEmpty()) {
-            $this->info('No users with local images found.');
-            return 0;
-        }
-
-        foreach ($users as $user) {
-            $this->info("Retrying upload for user ID: {$user->id}");
-
-            // Obtenir le chemin local de l'image
-            $localImagePath = $user->photo;
-
-            // Vérifier si le fichier existe
-            if (!file_exists($localImagePath)) {
-                $this->error("Image file not found for user ID: {$user->id} at path: {$localImagePath}");
-                continue;
-            }
-
-            // Exécuter le job pour uploader l'image
-            UploadUserImageJob::dispatch($user, $localImagePath);
-        }
-
-        $this->info('A new attempt to upload local images to Cloudinary has been dispatched.');
+        $this->info(' le Job pour trouver des images locales et envoyer des téléchargements a été envoyé.\n! Bon travail !');
         return 0;
     }
 }
