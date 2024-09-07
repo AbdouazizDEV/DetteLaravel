@@ -33,5 +33,6 @@ class ClientCreated
         return [
             new PrivateChannel('channel-name'),
         ];
+        
     }
 }

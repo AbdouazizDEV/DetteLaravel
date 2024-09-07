@@ -5,7 +5,6 @@ namespace App\Listeners;
 use App\Events\ClientCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-
 use App\Jobs\UploadUserImageJob;
 
 class HandleUserImageUpload
@@ -29,5 +28,7 @@ class HandleUserImageUpload
             $imagePath = request()->file('photo')->getRealPath();
             UploadUserImageJob::dispatch($user, $imagePath);
         }
+       
+
     }
 }

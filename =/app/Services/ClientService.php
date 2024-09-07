@@ -12,7 +12,7 @@ use App\Repositories\Contracts\UserRepositoryInterface; // Uncommented this line
 use Illuminate\Http\Request;
 use App\Events\ClientCreated;
 use App\Services\CloudinaryService;
-
+use Cloudinary\Api\Upload\UploadApi;
 class ClientService implements ClientServiceInterface
 {
     protected $clientRepository;
@@ -32,42 +32,59 @@ class ClientService implements ClientServiceInterface
         $this->fileStorageService = $fileStorageService;
         $this->cloudinaryService = $cloudinaryService;
     }
+    
     public function storeClient(array $data): Client
-    {
-        $userId = null;
-        if (isset($data['user'])) {
-            $user = $this->userRepository->create($data['user']);
-            $userId = $user->id;
-
-            if (isset($data['photo'])) {
-                // Tenter l'upload sur Cloudinary
-                $cloudinaryUrl = $this->cloudinaryService->uploadToCloudinary($data['photo']);
-
-                if ($cloudinaryUrl) {
-                    $user->photo = $cloudinaryUrl;
-                } else {
-                    // En cas d'échec, stocker l'image en base64
-                    $user->photo = base64_encode(file_get_contents($data['photo']));
-                }
+{
+    $userId = null;
+    
+    // dd($data['photo']);
+    if (isset($data['user'])) {
+        $user = $this->userRepository->create($data['user']);
+        $userId = $user->id;
+        
+        if (isset($data["user"]['photo'])) {
+            try {
+                // Téléchargement de l'image vers Cloudinary
+                $uploadedImage = $this->cloudinaryService->upload($data["user"]['photo'], [
+                    'folder' => 'avatars',
+                    'public_id' => 'user_' . $userId ,
+                    'overwrite' => true,
+                    'resource_type' => 'image',
+                ]);
+                
+                // Récupération du lien public de l'image
+                $path = $uploadedImage['secure_url'];
+            // dd($path);
+                // Mise à jour du chemin de la photo dans la base de données
+                $user->photo = $path;
+                $user->save();
+            } catch (\Exception $e) {
+                // Gestion de l'erreur si le téléchargement échoue, stockage en base64
+                //$user->photo = base64_encode(file_get_contents($data["user"]['photo']));
+                //Gestion de l'erreur si le téléchargement échoue, stocker le chemin local de l'image dans la base de données
+                $user->photo = $data["user"]['photo'];
                 $user->save();
             }
         }
-
-        $clientData = [
-            'surnom' => $data['surnom'],
-            'telephone_portable' => $data['telephone_portable'],
-            'adresse' => $data['adresse'] ?? null,
-            'user_id' => $userId,
-            'avatar' => $userId ? null : ($data['avatar'] ?? null),
-        ];
-
-        $client = $this->clientRepository->create($clientData);
-
-        $emailService = app(EmailService::class);
-        $emailService->sendFideliteEmail($client);
-
-        return $client;
     }
+
+    $clientData = [
+        'surnom' => $data['surnom'],
+        'telephone_portable' => $data['telephone_portable'],
+        'adresse' => $data['adresse'] ?? null,
+        'user_id' => $userId,
+        'avatar' => $userId ? null : ($data['avatar'] ?? $this->getDefaultAvatar()),
+    ];
+
+    $client = $this->clientRepository->create($clientData);
+
+    // Lancer un événement pour l'envoi de l'email et d'autres traitements asynchrones
+    //event(new ClientCreated($client));
+    $emailService = app(EmailService::class);
+    $emailService->sendFideliteEmail($client);
+    return $client;
+}
+
     
     protected function getDefaultAvatar(): string
     {
