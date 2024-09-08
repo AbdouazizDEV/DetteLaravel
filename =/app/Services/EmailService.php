@@ -18,6 +18,7 @@ class EmailService
     public function sendFideliteEmail($client)
     {
         $pdfService = app(PdfService::class);
+        //dd($client);
         $pdfPath = $pdfService->generateUserPdf($client->user);
 
         Mail::to($client->user->email)->send(new FideliteEmail($client, $pdfPath));
