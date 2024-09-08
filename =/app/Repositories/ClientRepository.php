@@ -65,7 +65,7 @@ class ClientRepository implements ClientRepositoryInterface
     {
         $client = Client::find($id);
         if ($client) {
-            $dettes = Dette::where('client_id', $id)->get(['id', 'date', 'montant', 'montantRestant']);
+            $dettes = Dette::where('clientid', $id)->get(['id', 'date', 'montant']);
             return ['client' => $client, 'dettes' => $dettes->isNotEmpty() ? $dettes : null];
         }
         return null;
