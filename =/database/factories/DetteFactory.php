@@ -21,7 +21,7 @@ class DetteFactory extends Factory
             'montant' => $this->faker->randomFloat(2, 100, 1000),
             'montantDu' => $this->faker->randomFloat(2, 100, 1000),
             'montantRestant' => $this->faker->randomFloat(2, 0, 900),
-            'client_id' => \App\Models\Client::factory(),
+            'clientID' => \App\Models\Client::factory(),
         ];
     }
 }

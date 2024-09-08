@@ -14,6 +14,7 @@ return new class extends Migration
     {
          Schema::create('article_dette', function (Blueprint $table) {
             $table->id();
+                
             $table->integer('qteVente');
             $table->decimal('prixVente', 10, 2);
             //$table->foreignId('article_id')->constrained()->onDelete('cascade');
