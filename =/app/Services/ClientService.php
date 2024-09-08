@@ -36,11 +36,9 @@ class ClientService implements ClientServiceInterface
     public function storeClient(array $data): Client
     {
         $userId = null;
-
         if (isset($data['user'])) {
             $user = $this->userRepository->create($data['user']);
             $userId = $user->id;
-
             if (isset($data["user"]['photo'])) {
                 try {
                     // Téléchargement de l'image vers Cloudinary
@@ -50,7 +48,6 @@ class ClientService implements ClientServiceInterface
                         'overwrite' => true,
                         'resource_type' => 'image',
                     ]);
-
                     // Mise à jour du chemin de la photo dans la base de données
                     $user->photo = $uploadedImage['secure_url'];
                     $user->save();
@@ -61,7 +58,6 @@ class ClientService implements ClientServiceInterface
                 }
             }
         }
-
         $clientData = [
             'surnom' => $data['surnom'],
             'telephone_portable' => $data['telephone_portable'],

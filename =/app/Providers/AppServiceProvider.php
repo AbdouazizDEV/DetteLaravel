@@ -8,6 +8,15 @@ use App\Services\Contracts\ClientServiceInterface;
 use App\Services\Contracts\FileStorageServiceInterface;
 use App\Services\Contracts\FileStorageServiceImpl;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Models\Client;
+use App\Observers\ClientObserver;
+use App\Repositories\Contracts\DetteRepositoryInterface;
+use App\Repositories\DetteRepository;
+use App\Services\Contracts\DetteServiceInterface;
+use App\Services\DetteService;
+use App\Models\Dette;
+use App\Observers\DetteObserver;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -34,6 +43,9 @@ class AppServiceProvider extends ServiceProvider
         );
         $this->app->bind(FileStorageServiceInterface::class, \App\Services\FileStorageServiceImpl::class);
         $this->app->bind(UserRepositoryInterface::class, \App\Repositories\UserRepository::class);
+
+        $this->app->bind(DetteRepositoryInterface::class, DetteRepository::class);
+        $this->app->bind(DetteServiceInterface::class, DetteService::class);
     }
 
     /**
@@ -41,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Client::observe(ClientObserver::class);
+        Dette::observe(DetteObserver::class);
     }
 }

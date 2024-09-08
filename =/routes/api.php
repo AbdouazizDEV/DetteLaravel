@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DetteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,4 +63,16 @@ Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function 
     Route::patch('articles/{id}', [ArticleController::class, 'update']);  // Mettre à jour partiellement un article spécifique
     Route::delete('articles/{id}', [ArticleController::class, 'destroy']);  // Supprimer un article (soft delete)
     Route::post('articles/updateStock', [ArticleController::class, 'updateStock']);  // Mettre à jour le stock des articles
+});
+
+//les routes pour Dette
+
+Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function () {
+    Route::get('clients/{id}/dettes', [ClientController::class, 'listDettes']);  // Récupérer les dettes d'un client
+    Route::post('dettes', [DetteController::class, 'store']);  // Ajouter une dette
+    Route::put('dettes/{id}', [DetteController::class, 'update']);  // Mettre à jour une dette
+    Route::delete('dettes/{id}', [DetteController::class, 'destroy']);  // Supprimer une dette
+    Route::post('dettes/remboursement', [DetteController::class, 'remboursement']);  // Effectuer un remboursement de la dette
+    Route::post('dettes/annulation', [DetteController::class, 'annulation']);  // Annuler une dette
+
 });
