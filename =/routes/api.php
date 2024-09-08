@@ -68,6 +68,7 @@ Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function 
 //les routes pour Dette
 
 Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function () {
+    Route::get('dettes', [DetteController::class, 'index']);  // Récupérer toutes les dettes
     Route::get('clients/{id}/dettes', [ClientController::class, 'listDettes']);  // Récupérer les dettes d'un client
     Route::post('dettes', [DetteController::class, 'store']);  // Ajouter une dette
     Route::put('dettes/{id}', [DetteController::class, 'update']);  // Mettre à jour une dette

@@ -4,12 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Builder;
 class Dette extends Model
 {
     use HasFactory;
 
     protected $fillable = ['montant', 'clientId', 'date'];
+    protected static function booted()
+    {
+        static::addGlobalScope('statut', function (Builder $builder) {
+            if (request()->has('statut')) {
+                if (request('statut') === 'Solde') {
+                    $builder->where('montant', 0);
+                } elseif (request('statut') === 'NonSolde') {
+                    $builder->where('montant', '>', 0);
+                }
+            }
+        });
+    }
 
     // Si vous utilisez 'client_id' dans votre code, mappez-le correctement avec la colonne 'clientId'
     public function client()
