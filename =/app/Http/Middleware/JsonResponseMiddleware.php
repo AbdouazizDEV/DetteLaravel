@@ -18,7 +18,7 @@ class JsonResponseMiddleware
         return response()->json([
             'status' => $response->getStatusCode(),
             'data' => $response->getOriginalContent(),
-            'message' => $response->getMessage()
+            //'message' => $response->getMessage()
         ]);
     }
 }

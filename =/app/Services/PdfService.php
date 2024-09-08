@@ -7,46 +7,36 @@ use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-
-
-
 use Endroid\QrCode\Encoding\Encoding;
+
 class PdfService
 {
     public function generateUserPdf($user)
     {
-        // Générer le QR code
+        // Générer le code QR avec toutes les données de l'utilisateur
+        $qrCodeData = "Nom: {$user->prenom} {$user->nom}, prenom: {$user->nom}, Email: {$user->login},role: {$user->role}";
         $qrCode = Builder::create()
+            ->data($qrCodeData)
             ->writer(new PngWriter())
-            ->data('Données que vous voulez encoder') // Vous pouvez encoder par exemple $user->id ou $user->email
-            ->encoding(new Encoding('UTF-8'))
-            // Utiliser la constante de niveau correct
             ->build();
-    
-        // Chemin pour enregistrer le QR code
+
         $qrCodePath = storage_path('app/public/qr_codes/' . $user->id . '.png');
-        
-        // Créer le répertoire des QR codes s'il n'existe pas
-        $qrCodeDirectory = storage_path('app/public/qr_codes/');
-        if (!File::exists($qrCodeDirectory)) {
-            File::makeDirectory($qrCodeDirectory, 0755, true);
-        }
-    
-        // Sauvegarder l'image du QR code
-        file_put_contents($qrCodePath, $qrCode->getString());
-    
-        // Chemin pour les cartes de fidélité
-        $pdfDirectory = storage_path('storage/app/public/cartes_fidelites/');
+        Storage::put('public/qr_codes/' . $user->id . '.png', $qrCode->getString());
+
+        // Charger la vue PDF stylisée
+        $pdf = Pdf::loadView('pdf.carte_fidelite', ['user' => $user, 'qrCodePath' => $qrCodePath]);
+
+        // Enregistrer le PDF sur le disque
+        $pdfDirectory = storage_path('app/public/cartes_fidelite/');
+
+        // Vérifier si le répertoire existe, sinon le créer
         if (!File::exists($pdfDirectory)) {
             File::makeDirectory($pdfDirectory, 0755, true);
         }
-    
-        // Créer le PDF
-        //$pdf = Pdf::loadView('pdf.carte_fidelite', ['user' => $user, 'qrCodePath' => $qrCodePath]);
-        $pdf = Pdf::loadView('pdf.carte_fidelite', ['user' => $user, 'qrCodePath' => $qrCodePath]);// Enregistrer le PDF sur le disque
+
         $pdfPath = $pdfDirectory . $user->id . '.pdf';
         $pdf->save($pdfPath);
-    
+
         return $pdfPath;
     }
 }

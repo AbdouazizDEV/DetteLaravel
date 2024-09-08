@@ -23,6 +23,7 @@ return new class extends Migration
             // Définition de la clé étrangère et de la contrainte unique
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->unique('user_id'); // Assurer que chaque utilisateur ne peut avoir qu'un client
+            $table->string('qrcode')->nullable();
         });
     }
 
@@ -35,5 +36,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('clients');
+        Schema::table('client', function (Blueprint $table) {
+            $table->dropColumn('qrcode');
+        });
     }
 };

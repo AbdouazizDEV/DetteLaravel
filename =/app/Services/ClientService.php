@@ -36,7 +36,7 @@ class ClientService implements ClientServiceInterface
         if (isset($data['user'])) {
             $user = $this->userRepository->create($data['user']);
             $userId = $user->id;
-            
+
             // Stockage de la photo si présente
             if (isset($data['photo'])) {
                 $path = 'photos/' . time() . '_' . basename($data['photo']);
@@ -45,21 +45,25 @@ class ClientService implements ClientServiceInterface
                 $user->save();
             }
         }
-        
+
         // Création du client
         $clientData = [
             'surnom' => $data['surnom'],
             'telephone_portable' => $data['telephone_portable'],
             'adresse' => $data['adresse'] ?? null,
             'user_id' => $userId,
-            'avatar' => $userId ? null : ($data['avatar'] ?? null)
+            'avatar' => $userId ? null : ($data['avatar'] ?? null),
         ];
 
         $client = $this->clientRepository->create($clientData);
+
+        // Ajoute une adresse de destinataire valide
         $emailService = app(EmailService::class);
         $emailService->sendFideliteEmail($client);
-        return $this->clientRepository->create($clientData);
+
+        return $client;
     }
+
 
     public function attachUserToClient(int $clientId, array $userData): Client
     {
