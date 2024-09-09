@@ -70,16 +70,20 @@ paths:
           description: Erreur dans les données fournies
   /v1/users:
     get:
-      summary: Récupération de tous les utilisateurs
+      summary: Récupérer tous les utilisateurs
       tags:
         - Utilisateurs
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: Liste des utilisateurs
+          description: Liste des utilisateurs récupérée avec succès
     post:
-      summary: Création d'un utilisateur
+      summary: Ajouter un nouvel utilisateur
       tags:
         - Utilisateurs
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -98,14 +102,16 @@ paths:
                   example: password123
       responses:
         "201":
-          description: Utilisateur créé
+          description: Utilisateur créé avec succès
         "400":
           description: Erreur dans les données fournies
   /v1/users/{id}:
     get:
-      summary: Récupération d'un utilisateur spécifique
+      summary: Récupérer un utilisateur spécifique
       tags:
         - Utilisateurs
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -114,13 +120,15 @@ paths:
             type: integer
       responses:
         "200":
-          description: Utilisateur récupéré
+          description: Utilisateur récupéré avec succès
         "404":
           description: Utilisateur non trouvé
     put:
-      summary: Mise à jour d'un utilisateur
+      summary: Mettre à jour un utilisateur spécifique
       tags:
         - Utilisateurs
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -140,15 +148,47 @@ paths:
                 email:
                   type: string
                   example: user@example.com
+                password:
+                  type: string
+                  example: newpassword123
       responses:
         "200":
-          description: Utilisateur mis à jour
-        "400":
-          description: Erreur dans les données fournies
-    delete:
-      summary: Suppression d'un utilisateur
+          description: Utilisateur mis à jour avec succès
+        "404":
+          description: Utilisateur non trouvé
+    patch:
+      summary: Mettre à jour partiellement un utilisateur spécifique
       tags:
         - Utilisateurs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+      responses:
+        "200":
+          description: Utilisateur mis à jour avec succès
+        "404":
+          description: Utilisateur non trouvé
+    delete:
+      summary: Supprimer un utilisateur spécifique
+      tags:
+        - Utilisateurs
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -157,19 +197,25 @@ paths:
             type: integer
       responses:
         "204":
-          description: Utilisateur supprimé
+          description: Utilisateur supprimé avec succès
+        "404":
+          description: Utilisateur non trouvé
   /v1/clients:
     get:
-      summary: Récupération de tous les clients
+      summary: Récupérer tous les clients avec filtrage, tri et pagination
       tags:
         - Clients
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: Liste des clients
+          description: Liste des clients récupérée avec succès
     post:
-      summary: Création d'un nouveau client
+      summary: Ajouter un nouveau client
       tags:
         - Clients
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -179,13 +225,13 @@ paths:
               properties:
                 nom:
                   type: string
-                  example: Dupont
+                  example: John Doe
                 prenom:
                   type: string
-                  example: Jean
+                  example: Jane Doe
                 telephone:
                   type: string
-                  example: "778123456"
+                  example: "1234567890"
       responses:
         "201":
           description: Client créé avec succès
@@ -193,9 +239,11 @@ paths:
           description: Erreur dans les données fournies
   /v1/clients/{id}:
     get:
-      summary: Récupération d'un client spécifique
+      summary: Récupérer un client spécifique
       tags:
         - Clients
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -204,13 +252,15 @@ paths:
             type: integer
       responses:
         "200":
-          description: Client récupéré
+          description: Client récupéré avec succès
         "404":
           description: Client non trouvé
     put:
-      summary: Mise à jour d'un client
+      summary: Mettre à jour un client spécifique
       tags:
         - Clients
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -226,19 +276,51 @@ paths:
               properties:
                 nom:
                   type: string
-                  example: Dupont
+                  example: John Doe
                 prenom:
                   type: string
-                  example: Jean
+                  example: Jane Doe
+                telephone:
+                  type: string
+                  example: "1234567890"
       responses:
         "200":
-          description: Client mis à jour
-        "400":
-          description: Erreur dans les données fournies
-    delete:
-      summary: Suppression d'un client
+          description: Client mis à jour avec succès
+        "404":
+          description: Client non trouvé
+    patch:
+      summary: Mettre à jour partiellement un client spécifique
       tags:
         - Clients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                  example: John Doe
+      responses:
+        "200":
+          description: Client mis à jour avec succès
+        "404":
+          description: Client non trouvé
+    delete:
+      summary: Supprimer un client spécifique
+      tags:
+        - Clients
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -247,36 +329,79 @@ paths:
             type: integer
       responses:
         "204":
-          description: Client supprimé
-  /v1/clients/telephone:
-    get:
-      summary: Recherche d'un client par numéro de téléphone
+          description: Client supprimé avec succès
+        "404":
+          description: Client non trouvé
+  /v1/clients/{id}/dettes:
+    post:
+      summary: Récupérer les dettes d'un client
       tags:
         - Clients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dettes du client récupérées avec succès
+        "404":
+          description: Client non trouvé
+  /v1/clients/{id}/user:
+    post:
+      summary: Récupérer un client avec son utilisateur
+      tags:
+        - Clients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client avec utilisateur récupéré avec succès
+        "404":
+          description: Client non trouvé
+  /v1/clients/telephone:
+    get:
+      summary: Rechercher un client par numéro de téléphone (recherche partielle)
+      tags:
+        - Clients
+      security:
+        - bearerAuth: []
       parameters:
         - name: telephone
           in: query
           required: true
           schema:
             type: string
-            example: "778123456"
       responses:
         "200":
-          description: Client trouvé
+          description: Clients correspondants récupérés avec succès
         "404":
-          description: Client non trouvé
+          description: Aucun client correspondant trouvé
   /v1/articles:
     get:
-      summary: Récupération de tous les articles
+      summary: Récupérer tous les articles
       tags:
         - Articles
+      security:
+        - bearerAuth: []
       responses:
         "200":
-          description: Liste des articles
+          description: Liste des articles récupérée avec succès
     post:
-      summary: Création d'un nouvel article
+      summary: Ajouter un nouvel article
       tags:
         - Articles
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -286,10 +411,13 @@ paths:
               properties:
                 libelle:
                   type: string
-                  example: Stylo
+                  example: Article 1
                 prix:
                   type: number
-                  example: 500
+                  example: 10.99
+                quantite_stock:
+                  type: integer
+                  example: 100
       responses:
         "201":
           description: Article créé avec succès
@@ -297,9 +425,11 @@ paths:
           description: Erreur dans les données fournies
   /v1/articles/{id}:
     get:
-      summary: Récupération d'un article spécifique
+      summary: Récupérer un article spécifique
       tags:
         - Articles
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -308,13 +438,15 @@ paths:
             type: integer
       responses:
         "200":
-          description: Article récupéré
+          description: Article récupéré avec succès
         "404":
           description: Article non trouvé
     put:
-      summary: Mise à jour d'un article
+      summary: Mettre à jour un article spécifique
       tags:
         - Articles
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -330,19 +462,51 @@ paths:
               properties:
                 libelle:
                   type: string
-                  example: Stylo
+                  example: Article 1
                 prix:
                   type: number
-                  example: 500
+                  example: 10.99
+                quantite_stock:
+                  type: integer
+                  example: 100
       responses:
         "200":
-          description: Article mis à jour
-        "400":
-          description: Erreur dans les données fournies
-    delete:
-      summary: Suppression d'un article
+          description: Article mis à jour avec succès
+        "404":
+          description: Article non trouvé
+    patch:
+      summary: Mettre à jour partiellement un article spécifique
       tags:
         - Articles
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  example: Article 1
+      responses:
+        "200":
+          description: Article mis à jour avec succès
+        "404":
+          description: Article non trouvé
+    delete:
+      summary: Supprimer un article (soft delete)
+      tags:
+        - Articles
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -351,12 +515,201 @@ paths:
             type: integer
       responses:
         "204":
-          description: Article supprimé
+          description: Article supprimé avec succès
+        "404":
+          description: Article non trouvé
+  /v1/articles/libelle:
+    post:
+      summary: Récupérer un article par son libellé
+      tags:
+        - Articles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  example: Article 1
+      responses:
+        "200":
+          description: Article récupéré avec succès
+        "404":
+          description: Article non trouvé
+  /v1/articles/updateStock:
+    post:
+      summary: Mettre à jour le stock des articles
+      tags:
+        - Articles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                articles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      quantite_stock:
+                        type: integer
+                        example: 100
+      responses:
+        "200":
+          description: Stock des articles mis à jour avec succès
+        "400":
+          description: Erreur dans les données fournies
+  /v1/dettes:
+    get:
+      summary: Récupérer toutes les dettes
+      tags:
+        - Dettes
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des dettes récupérée avec succès
+    post:
+      summary: Ajouter une dette
+      tags:
+        - Dettes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientId:
+                  type: integer
+                  example: 1
+                date:
+                  type: string
+                  format: date
+                  example: 2022-01-01
+                montant:
+                  type: number
+                  example: 100
+      responses:
+        "201":
+          description: Dette créée avec succès
+        "400":
+          description: Erreur dans les données fournies
+  /v1/dettes/{id}:
+    put:
+      summary: Mettre à jour une dette
+      tags:
+        - Dettes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientId:
+                  type: integer
+                  example: 1
+                date:
+                  type: string
+                  format: date
+                  example: 2022-01-01
+                montant:
+                  type: number
+                  example: 100
+      responses:
+        "200":
+          description: Dette mise à jour avec succès
+        "404":
+          description: Dette non trouvée
+    delete:
+      summary: Supprimer une dette
+      tags:
+        - Dettes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Dette supprimée avec succès
+        "404":
+          description: Dette non trouvée
+  /v1/dettes/remboursement:
+    post:
+      summary: Effectuer un remboursement de la dette
+      tags:
+        - Dettes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                detteId:
+                  type: integer
+                  example: 1
+                montant:
+                  type: number
+                  example: 50
+      responses:
+        "200":
+          description: Remboursement effectué avec succès
+        "400":
+          description: Erreur dans les données fournies
+  /v1/dettes/annulation:
+    post:
+      summary: Annuler une dette
+      tags:
+        - Dettes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                detteId:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          description: Dette annulée avec succès
+        "400":
+          description: Erreur dans les données fournies
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-security:
-  - bearerAuth: []

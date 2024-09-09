@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDetteRequest;
 use App\Services\DetteService;
-use Illuminate\Http\JsonResponse;
 use App\Models\Dette;
 
 class DetteController extends Controller
@@ -14,41 +13,29 @@ class DetteController extends Controller
     public function __construct(DetteService $detteService)
     {
         $this->detteService = $detteService;
+        $this->middleware('api.response');
     }
 
-    public function store(StoreDetteRequest $request): JsonResponse
+    public function store(StoreDetteRequest $request)
     {
         $validatedData = $request->validated();
 
         try {
             $response = $this->detteService->createDette($validatedData);
-
-            return response()->json($response, $response['status']);
+            return response($response, $response['status']);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 500,
-                'message' => $e->getMessage(),
-            ], 500);
+            return response(['message' => $e->getMessage()], 500);
         }
     }
-    // Méthode pour lister les dettes avec ou sans filtre de statut
-    public function index(): JsonResponse
+
+    public function index()
     {
-        $dettes = Dette::with('client')  // Charger les clients liés aux dettes
-            ->get();
+        $dettes = Dette::with('client')->get();
 
         if ($dettes->isEmpty()) {
-            return response()->json([
-                'status' => 200,
-                'data' => null,
-                'message' => 'Pas de dettes trouvées',
-            ], 200);
+            return response(['message' => 'Pas de dettes trouvées'], 200);
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => $dettes,
-            'message' => 'Liste des dettes',
-        ], 200);
+        return response($dettes, 200);
     }
 }
