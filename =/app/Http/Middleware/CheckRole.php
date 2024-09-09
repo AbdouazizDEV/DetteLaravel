@@ -5,32 +5,34 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class CheckRole
 {
+
     /**
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle($request, Closure $next, ...$roles)
-{
-    $user = $request->user();
-    //dd($user);
+    {
+        $user = Auth::user();
+        //dd($user);
+        //dd($request->user());
+        if (!$request->user()) {
+            return response()->json(['error' => 'Non autorisé'], 403);
+        }
+        
+        
 
-    $userData = $user['role'];
-    
-    if (!$user['role'] && !isset($userData->role)) {
+        foreach ($roles as $role) {
+            //dd($request->user()->$role);
+            if ($request->user()) {
+                return $next($request);
+            }
+        }
+
         return response()->json(['error' => 'Non autorisé'], 403);
     }
-
-    foreach ($roles as $role) {
-        if ($user['role'] == $role || $user['role'] == 'admin') {
-            return $next($request);
-        }
-    }
-
-    return response()->json(['error' => 'Non autorisé'], 403);
-}
-
 }
