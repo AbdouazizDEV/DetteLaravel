@@ -67,7 +67,7 @@
         <p style="text-align: center;">Votre carte de fidélité est fournie avec un code QR pour vous identifier facilement.</p>
         
         <!-- Photo de profil -->
-        <img src="{{ asset('storage/' . $client->user->photo) }}" class="profile-photo" alt="Photo de profil">
+        <img src="{{ asset('/' . $client->user->photo) }}" class="profile-photo" alt="Photo de profil">
 
         <!-- Informations du client -->
         <div class="info">
@@ -76,13 +76,13 @@
             <p>Email: {{ $client->user->login }}</p>
         </div>
 
-        <!-- Code QR -->
+        <!-- Code QR
         <p style="text-align: center;">Votre Code QR:</p>
-        <img src="{{ $qrCodePath }}" class="qr-code" alt="QR Code">
+        <img src="{{ $qrCodePath }}" class="qr-code" alt="QR Code"> -->
     </div>
 
     <div class="footer">
-        <p>Si vous avez des questions, veuillez nous contacter à support@votreentreprise.com</p>
+        <p>Si vous avez des questions, veuillez nous contacter à abdouazizdiop583@gmail.com</p>
         <p>Merci pour votre fidélité !</p>
     </div>
 </body>

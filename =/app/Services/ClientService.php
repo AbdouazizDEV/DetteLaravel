@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use App\Events\ClientCreated;
 use App\Services\CloudinaryService;
 use Cloudinary\Api\Upload\UploadApi;
+use InvalidArgumentException;
+//use App\Services\Exception\RuntimeException;
+use RuntimeException;
 class ClientService implements ClientServiceInterface
 {
     protected $clientRepository;
@@ -68,8 +71,17 @@ class ClientService implements ClientServiceInterface
 
         $client = $this->clientRepository->create($clientData);
 
-        // Déclenchement de l'événement pour l'envoi de l'email et le téléchargement de l'image
-        event(new ClientCreated($client));
+        // Déclenchement de l'événement pour l'envoi de l'email et le téléchargement de l'image sans utiliser event*
+         if (isset($data['avatar'])) {
+             $path = 'avatars/'. time(). '_'. basename($data['avatar']);
+             $this->fileStorageService->store($data['avatar'], $path);
+             $client->avatar = $path;
+         }
+         $client->save();
+        //  $client->user->notify(new ClientCreatedNotification($client));
+        //  UploadFacade::store($data['avatar'], 'avatars/'. $client->id);
+
+        // event(new ClientCreated($client));
 
         return $client;
     }
@@ -144,11 +156,34 @@ class ClientService implements ClientServiceInterface
     
         return $client;
     }
-protected function convertImageToBase64(string $url): string
-{
-    $imageData = file_get_contents($url);
-    return 'data:image/' . pathinfo($url, PATHINFO_EXTENSION) . ';base64,' . base64_encode($imageData);
-}
+    protected function convertImageToBase64($data): string
+    {
+        // Si $data est un objet ou un tableau, extrayez l'URL ou le chemin de l'image
+        if (is_object($data)) {
+            $url = $data->avatar ?? null;
+        } elseif (is_array($data)) {
+            $url = $data['avatar'] ?? null;
+        } else {
+            $url = $data;  // Dans ce cas, on suppose que $data est déjà une URL ou un chemin
+        }
+    
+        // Vérifiez si l'URL est valide
+        if (!is_string($url) || empty($url)) {
+            // Gérer le cas où l'avatar est absent ou null
+            // Vous pouvez soit retourner une image par défaut, soit lever une exception
+            throw new InvalidArgumentException("L'URL fournie pour l'avatar est invalide ou absente.");
+        }
+    
+        // Lire l'image et la convertir en base64
+        $imageData = file_get_contents($url);
+        if ($imageData === false) {
+            throw new RuntimeException("Échec de la lecture des données de l'image depuis l'URL : $url");
+        }
+        $base64 = base64_encode($imageData);
+    
+        return 'data:image/' . pathinfo($url, PATHINFO_EXTENSION) . ';base64,' . $base64;
+    }
+    
 
 
     public function all($active = null)

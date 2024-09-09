@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ApiResponseMiddleware
 {
@@ -11,13 +12,13 @@ class ApiResponseMiddleware
     {
         $response = $next($request);
 
-        if ($response->isSuccessful()) {
+        if ($response instanceof JsonResponse) {
             $data = $response->getData(true);
             return response()->json([
                 'status' => $response->getStatusCode(),
                 'data' => $data,
                 'message' => 'Success'
-            ]);
+            ], $response->getStatusCode());
         }
 
         return $response;

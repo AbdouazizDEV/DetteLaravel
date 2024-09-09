@@ -4,33 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Facades\ClientServiceFacade;
-use App\Http\Requests\ValidateClientPostRequest;
 use App\Http\Requests\ValidateClientUpdateRequest;
-use App\Http\Requests\ValidateUserPostRequest;
-use Illuminate\Support\Facades\Validator;
-use App\Models\Client;
 use App\Services\Contracts\ClientServiceInterface;
+
 class ClientController extends Controller
 {
-     
     protected $clientService;
 
-    
     public function __construct(ClientServiceInterface $clientService)
     {
         $this->clientService = $clientService;
         $this->middleware('api.response');
-        
     }
+
     public function index(Request $request)
     {
         $clients = $this->clientService->getAllClients($request);
-        
-        return response()->json([
-            'status' => 200,
-            'data' => $clients,
-            'message' => 'Clients retrieved successfully'
-        ]);
+        return response($clients, 200);
     }
 
     public function show($id)
@@ -38,69 +28,51 @@ class ClientController extends Controller
         $client = $this->clientService->getClientById($id);
 
         if (!$client) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Client not found'
-            ], 404);
+            return response(['message' => 'Client not found'], 404);
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => $client,
-            'message' => 'Client retrieved successfully'
-        ]);
+        return response($client, 200);
     }
 
     public function searchByTelephone($telephone)
     {
         $client = ClientServiceFacade::searchByTelephone($telephone);
-        return response()->json($client);
+        return response($client, 200);
     }
-
-  
 
     public function store(Request $request)
     {
         $client = $this->clientService->storeClient($request->all());
-        return response()->json([
-            'status' => 200,
-            'data' => $client,
-            'message' => 'Success'
-        ]);
+        return response($client, 200);
     }
 
     public function attachUser(Request $request)
     {
         $client = $this->clientService->attachUserToClient($request->client_id, $request->user);
-        return response()->json([
-            'status' => 200,
-            'data' => $client,
-            'message' => 'User attached successfully'
-        ]);
+        return response($client, 200);
     }
-    
 
     public function listDettes($id)
     {
         $result = ClientServiceFacade::listDettes($id);
-        return response()->json($result);
+        return response($result, 200);
     }
 
     public function showWithUser($id)
     {
         $result = ClientServiceFacade::showWithUser($id);
-        return response()->json($result);
+        return response($result, 200);
     }
 
     public function update(ValidateClientUpdateRequest $request, $id)
     {
         $client = ClientServiceFacade::update($id, $request->validated());
-        return response()->json(['message' => 'Client mis à jour avec succès', 'client' => $client]);
+        return response(['message' => 'Client mis à jour avec succès', 'client' => $client], 200);
     }
 
     public function destroy($id)
     {
         ClientServiceFacade::delete($id);
-        return response()->json(['message' => 'Client supprimé avec succès']);
+        return response(['message' => 'Client supprimé avec succès'], 200);
     }
 }
