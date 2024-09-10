@@ -16,6 +16,11 @@ use Cloudinary\Api\Upload\UploadApi;
 use InvalidArgumentException;
 //use App\Services\Exception\RuntimeException;
 use RuntimeException;
+use App\Models\User; // assuming the User class is in the App\Models namespace
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use App\Facades\ClientServiceFacade; // assuming it's defined in the App\Facades namespace
+use App\Jobs\UploadUserImageJob;
 class ClientService implements ClientServiceInterface
 {
     protected $clientRepository;
@@ -40,8 +45,18 @@ class ClientService implements ClientServiceInterface
     {
         $userId = null;
         if (isset($data['user'])) {
-            $user = $this->userRepository->create($data['user']);
+            $userData = $data['user'];
+            $userData['password'] = Hash::make($userData['password']);
+    
+            // Vérifier si le login existe déjà
+            $existingUser = User::where('login', $userData['login'])->first();
+            if ($existingUser) {
+                throw new \Exception("Le login de l'utilisateur est déjà pris.");
+            }
+    
+            $user = $this->userRepository->create($userData);
             $userId = $user->id;
+    
             if (isset($data["user"]['photo'])) {
                 try {
                     // Téléchargement de l'image vers Cloudinary
@@ -51,43 +66,56 @@ class ClientService implements ClientServiceInterface
                         'overwrite' => true,
                         'resource_type' => 'image',
                     ]);
-                    // Mise à jour du chemin de la photo dans la base de données
+                    // Mise à jour du chemin de la photo dans la base de données avec l'URL Cloudinary
                     $user->photo = $uploadedImage['secure_url'];
                     $user->save();
                 } catch (\Exception $e) {
-                    // Stockage du chemin local en cas d'erreur
-                    $user->photo = $data["user"]['photo'];
+                    // Logguer l'erreur mais ne pas stocker le chemin local
+                    \Log::error('Erreur lors du téléchargement de l\'image sur Cloudinary: ' . $e->getMessage());
+                    // Vous pouvez choisir d'utiliser une image par défaut ou de laisser le champ vide
+                    $user->photo = null; // ou une URL d'image par défaut
                     $user->save();
                 }
             }
+            Log::info('User created', ['user' => $user]);
         }
+        
         $clientData = [
             'surnom' => $data['surnom'],
             'telephone_portable' => $data['telephone_portable'],
             'adresse' => $data['adresse'] ?? null,
             'user_id' => $userId,
-            'avatar' => $userId ? null : ($data['avatar'] ?? $this->getDefaultAvatar()),
+            'avatar' => null, // On initialise l'avatar à null
         ];
-
+    
         $client = $this->clientRepository->create($clientData);
-
-        // Déclenchement de l'événement pour l'envoi de l'email et le téléchargement de l'image sans utiliser event*
-         if (isset($data['avatar'])) {
-             $path = 'avatars/'. time(). '_'. basename($data['avatar']);
-             $this->fileStorageService->store($data['avatar'], $path);
-             $client->avatar = $path;
-         }
-         $client->save();
-        //  $client->user->notify(new ClientCreatedNotification($client));
-        //  UploadFacade::store($data['avatar'], 'avatars/'. $client->id);
-
-        // event(new ClientCreated($client));
-
+    
+        // Traitement de l'avatar du client
+        if (isset($data['avatar'])) {
+            try {
+                $uploadedAvatar = $this->cloudinaryService->upload($data['avatar'], [
+                    'folder' => 'client_avatars',
+                    'public_id' => 'client_' . $client->id,
+                    'overwrite' => true,
+                    'resource_type' => 'image',
+                ]);
+                $client->avatar = $uploadedAvatar['secure_url'];
+                $client->save();
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors du téléchargement de l\'avatar du client sur Cloudinary: ' . $e->getMessage());
+                // Vous pouvez choisir d'utiliser une image par défaut ou de laisser le champ vide
+                $client->avatar = null; // ou une URL d'avatar par défaut
+                $client->save();
+            }
+        }
+    
+        // Si un utilisateur est associé, déclencher l'événement ClientCreated
+        if ($userId) {
+            event(new ClientCreated($client));
+        }
+    
         return $client;
     }
-
-
-    
     protected function getDefaultAvatar(): string
     {
         // Retourne l'avatar par défaut (par exemple en base64)
@@ -250,36 +278,29 @@ class ClientService implements ClientServiceInterface
     }
 
     public function listDettes($id)
-    {
-        $result = $this->clientRepository->listDettes($id);
-        if ($result) {
-            $result['client'] = $this->convertImageToBase64($result['client']);
-        }
-        return $result;
+{
+    $client = $this->getClientById($id);
+
+    if (!$client) {
+        return response(['message' => 'Client not found'], 404);
     }
+
+    $result = ClientServiceFacade::listDettes($id);
+    return response($result, 200);
+}
 
     public function showWithUser($id)
     {
+       
         $result = $this->clientRepository->showWithUser($id);
+        //dd($result['client']);
         if ($result) {
-            $result['client'] = $this->convertImageToBase64($result['client']);
+            $result['client'] = ($result['client']);
+            
         }
         return $result;
     }
 
-    /* private function convertImageToBase64($client)
-    {
-        if ($client && $client->photo) {
-            $path = str_replace(url('/'), '', $client->photo);
-            if (Storage::exists($path)) {
-                $imageData = Storage::get($path);
-                $client->photo = base64_encode($imageData);
-            } else {
-                $client->photo = null; // Si le fichier n'existe pas, définir photo à null
-            }
-        }
-        return $client;
-    } */
 
     private function convertImagesToBase64($clients)
     {

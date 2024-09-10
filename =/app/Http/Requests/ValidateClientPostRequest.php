@@ -20,32 +20,37 @@ class ValidateClientPostRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    
+
+    public function rules()
     {
         return [
-            'surnom' => 'required|unique:clients,surnom|max:255',
-            'telephone_portable' => [
-                'required',
-                'unique:clients,telephone_portable',
-                'regex:/^(77|76|70|75|78)[0-9]{7}$/'
-            ],
+            'surnom' => 'required|string|max:255',
+            'telephone_portable' => 'required|string|max:20',
             'adresse' => 'nullable|string|max:255',
-            'user_id' => 'exists:users,id|nullable',
+            'user' => 'nullable|array',
+            'user.login' => 'required_with:user|string|unique:users,login',
+            'user.password' => 'required_with:user|string|min:8',
+            'user.prenom' => 'required_with:user|string|max:255',
+            'user.nom' => 'required_with:user|string|max:255',
+            'user.photo' => 'required_with:user|string|max:2048',
         ];
     }
 
     public function messages()
     {
         return [
-            'surnom.required' => 'Le surnom est obligatoire.',
-            'surnom.unique' => 'Ce surnom est déjà utilisé.',
-            'telephone_portable.required' => 'Le numéro de téléphone portable est obligatoire.',
-            'telephone_portable.regex' => 'Le numéro de téléphone doit commencer par 77, 76, 70, 75 ou 78 et contenir exactement 9 chiffres.',
-            'telephone_portable.unique' => 'Ce numéro de téléphone est déjà utilisé.',
-            'user_id.exists' => 'Cet utilisateur n\'existe pas.'
+            'surnom.required' => 'Le surnom est requis.',
+            'telephone_portable.required' => 'Le numéro de téléphone est requis.',
+            'user.login.required_with' => 'Le login est requis si un utilisateur est fourni.',
+            'user.password.required_with' => 'Le mot de passe est requis si un utilisateur est fourni.',
+            'user.prenom.required_with' => 'Le prénom est requis si un utilisateur est fourni.',
+            'user.nom.required_with' => 'Le nom est requis si un utilisateur est fourni.',
+            'user.photo.image' => 'La photo doit être une image.',
+             'user.photo.mimes' => 'La photo doit être de type jpeg, png, jpg ou gif.',
+            //'user.photo.max' => 'La photo ne doit pas dépasser 2 Mo.',
         ];
     }
-
     public function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
         throw new HttpResponseException(

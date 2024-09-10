@@ -8,6 +8,6 @@ class ClientServiceFacade extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'clientService';
+        return 'ClientService';
     }
 }

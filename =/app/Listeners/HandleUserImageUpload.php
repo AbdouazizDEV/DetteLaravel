@@ -28,7 +28,6 @@ class HandleUserImageUpload
             $imagePath = request()->file('photo')->getRealPath();
             UploadUserImageJob::dispatch($user, $imagePath);
         }
-       
-
+        
     }
 }

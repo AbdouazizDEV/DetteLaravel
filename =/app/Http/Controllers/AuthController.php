@@ -27,6 +27,8 @@ class AuthController extends Controller
         $this->authService->logout();
         return response()->json(['message' => 'Logged out successfully']);
     }
+    //fair la méthode showLoginForm
+    
  
     // Méthode pour gérer l'enregistrement
     public function register(Request $request){

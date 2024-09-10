@@ -1,4 +1,5 @@
 <?php
+// app/Services/PdfService.php
 
 namespace App\Services;
 
@@ -9,11 +10,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Endroid\QrCode\Encoding\Encoding;
 use Exception;
+use Illuminate\Support\Facades\Log;
+
 class PdfService
 {
     public function generateUserPdf($user)
     {
         if ($user === null) {
+            Log::error('User is null in generateUserPdf');
             throw new Exception("L'utilisateur est introuvable.");
         }
         // Générer le code QR avec toutes les données de l'utilisateur
@@ -22,7 +26,6 @@ class PdfService
             ->data($qrCodeData)
             ->writer(new PngWriter())
             ->build();
-
 
         $qrCodePath = storage_path('app/public/qr_codes/' . $user->id . '.png');
         Storage::put('public/qr_codes/' . $user->id . '.png', $qrCode->getString());

@@ -1,4 +1,5 @@
 <?php
+// app/Jobs/UploadUserPhotoJob.php
 
 namespace App\Jobs;
 
@@ -11,7 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 
-class UploadUserImageJob implements ShouldQueue
+class UploadUserPhotoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -35,35 +36,24 @@ class UploadUserImageJob implements ShouldQueue
         try {
             // Initialiser Cloudinary avec vos paramètres d'environnement
             $cloudinary = new Cloudinary();
-    
-            // Log avant de tenter l'upload
-            \Log::info('Tentative de téléchargement de l\'image sur Cloudinary', ['imagePath' => $this->imagePath]);
-    
-            // Uploader l'image sur Cloudinary
+
+            // Téléchargement de l'image vers Cloudinary
             $upload = $cloudinary->uploadApi()->upload($this->imagePath, [
                 'folder' => 'avatars',
-                'publicid' => 'user' . $this->user->id,
+                'public_id' => 'user_' . $this->user->id,
                 'overwrite' => true,
                 'resource_type' => 'image',
             ]);
-    
-            // Log succès de l'upload
-            \Log::info('Téléchargement réussi sur Cloudinary', ['url' => $upload['secure_url']]);
-    
-            // Si l'upload réussit, stocker l'URL de l'image dans la base de données
+
+            // Mise à jour du chemin de la photo dans la base de données
             $this->user->photo = $upload['secure_url'];
-    
-            // Supprimer le fichier temporaire localement
+            $this->user->save();
+
+            // Supprimer le fichier temporaire
             Storage::delete($this->imagePath);
-    
         } catch (\Exception $e) {
             // Si l'upload échoue, logguer l'erreur et laisser l'image en base64
-            \Log::error('Échec du téléchargement sur Cloudinary', ['error' => $e->getMessage()]);
-            throw new \Exception("Impossible de télécharger l'image.");
+            \Log::error('Upload failed: ' . $e->getMessage());
         }
-    
-        // Sauvegarder les modifications dans la base de données
-        $this->user->save();
     }
-    
 }

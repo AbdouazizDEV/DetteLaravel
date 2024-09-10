@@ -23,6 +23,8 @@ class SendFideliteEmailListener implements ShouldQueue
     public function handle(ClientCreated $event): void
     {
         // Dispatch le job pour envoyer l'email de fidélité
-        SendFideliteEmailJob::dispatch($event->client);
+        if ($event->client->user) {
+            SendFideliteEmailJob::dispatch($event->client);
+        }
     }
 }

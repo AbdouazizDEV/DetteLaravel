@@ -3,76 +3,193 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Facades\ClientServiceFacade;
+use App\Models\Client;
+use App\Http\Requests\ValidateClientPostRequest;
 use App\Http\Requests\ValidateClientUpdateRequest;
+use App\Http\Requests\ValidateUserPostRequest;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\Validator;
+use App\Models\Dette;
 use App\Services\Contracts\ClientServiceInterface;
+
+use Spatie\QueryBuilder\AllowedSort;
+use Illuminate\Support\Facades\Auth;
+
 
 class ClientController extends Controller
 {
-    protected $clientService;
+    private $clientService;
 
     public function __construct(ClientServiceInterface $clientService)
     {
         $this->clientService = $clientService;
-        $this->middleware('api.response');
     }
-
-    public function index(Request $request)
+     public function index(Request $request)
     {
-        $clients = $this->clientService->getAllClients($request);
-        return response($clients, 200);
+        // Initialisation de la requête de base
+        $query = QueryBuilder::for(Client::class)
+            ->allowedFilters([
+                AllowedFilter::partial('surnom'),    // Filtrage partiel par surnom
+                AllowedFilter::partial('telephone_portable'), // Filtrage partiel par telephone_portable
+                AllowedFilter::exact('user_id'),  // Filtrage exact par user_id
+            ])
+            ->allowedSorts([
+                'surnom', 'telephone_portable', 'created_at'     // Trie par surnom, téléphone ou date de création
+            ])
+            ->with('user');  // Eager Loading pour la relation 'user'
+
+        // Filtrage par compte (comptes actifs ou non)
+        $compte = $request->query('compte');
+        if ($compte === 'oui') {
+            $query->whereHas('user');  // Filtrer les clients qui ont un compte utilisateur
+        } elseif ($compte === 'non') {
+            $query->whereDoesntHave('user');  // Filtrer les clients sans compte utilisateur
+        }
+
+        // Filtrage par état du compte (actif ou désactivé)
+        $active = $request->query('active');
+        if ($active === 'oui') {
+            $query->whereHas('user', function($q) {
+                $q->where('active', true);  // Filtrer les clients avec des comptes actifs
+            });
+        } elseif ($active === 'non') {
+            $query->whereHas('user', function($q) {
+                $q->where('active', false);  // Filtrer les clients avec des comptes désactivés
+            });
+        }
+
+        // Pagination
+        $clients = $query->paginate(5);
+
+        // Vérification si la collection de clients est vide
+        if ($clients->isEmpty()) {
+            return response()->json([
+                'status' => 200,
+                'data' => null,
+                'message' => 'Pas de clients trouvés'
+            ]);
+        }
+
+        // Retourne une collection paginée sous forme de JSON
+        return response()->json([
+            'status' => 200,
+            'data' => $clients,
+            'message' => 'Liste des clients récupérée avec succès.'
+        ]);
     }
 
     public function show($id)
     {
-        $client = $this->clientService->getClientById($id);
+        
+        /* return response()->json($client); */
+        $client = QueryBuilder::for(Client::class)
+        ->with('user')                        // Eager Loading pour la relation 'user'
+        ->findOrFail($id);
 
+        return response()->json($client);
+    }
+
+    public function searchByTelephone( $telephone)
+    {
+       // $telephone = $request->input('telephone');
+    
+        // Rechercher le client par numéro de téléphone
+        $client = Client::where('telephone_portable', $telephone)->first();
+    
         if (!$client) {
-            return response(['message' => 'Client not found'], 404);
+            return response()->json([
+                'status' => 404,
+                'data' => null,
+                'message' => 'Client non trouvé'
+            ], 404);
         }
-
-        return response($client, 200);
+    
+        return response()->json([
+            'status' => 200,
+            'data' => $client,
+            'message' => 'Client trouvé'
+        ]);
     }
-
-    public function searchByTelephone($telephone)
+    
+    public function store(ValidateClientPostRequest $request)
     {
-        $client = ClientServiceFacade::searchByTelephone($telephone);
-        return response($client, 200);
+        try {
+            $client = $this->clientService->storeClient($request->validated());
+            return response()->json([
+                'status' => 200,
+                'data' => $client,
+                'message' => 'Client ajouté avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
-
-    public function store(Request $request)
-    {
-        $client = $this->clientService->storeClient($request->all());
-        return response($client, 200);
-    }
-
-    public function attachUser(Request $request)
-    {
-        $client = $this->clientService->attachUserToClient($request->client_id, $request->user);
-        return response($client, 200);
-    }
-
+  
     public function listDettes($id)
     {
-        $result = ClientServiceFacade::listDettes($id);
-        return response($result, 200);
+        $client = Client::find($id);
+    
+        if ($client) {
+            // Récupérer les dettes du client sans détails
+            $dettes = Dette::where('clientid', $id)->get(['id', 'date', 'montant']);
+    
+            return response()->json([
+                'status' => 200,
+                'data' => [
+                    'client' => $client,
+                    'dettes' => $dettes->isNotEmpty() ? $dettes : null
+                ],
+                'message' => 'Client trouvé',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé',
+            ], 411);
+        }
     }
 
+  
     public function showWithUser($id)
     {
-        $result = ClientServiceFacade::showWithUser($id);
-        return response($result, 200);
-    }
+        $client = Client::find($id);
 
+        if ($client) {
+            $user = $client->user;  // Assuming there's a relation defined in the Client model
+
+            return response()->json([
+                'status' => 200,
+                'data' => [
+                    'client' => $client,
+                    'user' => $user
+                ],
+                'message' => 'Client trouvé',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 411,
+                'data' => null,
+                'message' => 'Objet non trouvé',
+            ], 411);
+        }
+    }
     public function update(ValidateClientUpdateRequest $request, $id)
     {
-        $client = ClientServiceFacade::update($id, $request->validated());
-        return response(['message' => 'Client mis à jour avec succès', 'client' => $client], 200);
+        $client = Client::findOrFail($id);
+        $client->update($request->validated());
+        return response()->json(['message' => 'Client mis à jour avec succès', 'client' => $client]);
     }
 
     public function destroy($id)
     {
-        ClientServiceFacade::delete($id);
-        return response(['message' => 'Client supprimé avec succès'], 200);
+        $client = Client::findOrFail($id);
+        $client->delete();
+        return response()->json(['message' => 'Client supprimé avec succès']);
     }
+    
 }

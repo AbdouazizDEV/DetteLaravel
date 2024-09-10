@@ -13,6 +13,7 @@ interface ClientServiceInterface
     public function delete($id);
     public function searchByTelephone($telephone);
     public function listDettes($id);
+    //public function listDettesClient($id);
     public function showWithUser($id);
     public function attachUserToClient(int $clientId, array $userData): Client;
     public function getAllClients(Request $request);

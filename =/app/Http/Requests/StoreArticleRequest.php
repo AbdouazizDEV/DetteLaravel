@@ -26,7 +26,7 @@ class StoreArticleRequest extends FormRequest
         return [
             'libelle' => 'required|string|max:255',
             'prix' => 'required|numeric|min:0',
-            'qteStock' => 'required|integer|min:0',
+            'quantite_stock' => 'required|integer|min:0',
         ];
     }
     public function messages(){
@@ -35,9 +35,9 @@ class StoreArticleRequest extends FormRequest
             'prix.required' => 'Le prix est obligatoire.',
             'prix.numeric' => 'Le prix doit être un nombre.',
             'prix.min' => 'Le prix doit être supérieur ou égal à 0.',
-            'qteStock.required' => 'La quantité en stock est obligatoire.',
-            'qteStock.integer' => 'La quantité en stock doit être un entier.',
-            'qteStock.min' => 'La quantité en stock doit être supérieur ou égal à 0.',
+            'quantite_stock.required' => 'La quantité en stock est obligatoire.',
+            'quantite_stock.integer' => 'La quantité en stock doit être un entier.',
+            'quantite_stock.min' => 'La quantité en stock doit être supérieur ou égal à 0.',
         ];  //messages d'erreurs ici ici vous pouvez ajouter autant de messages que vous voulez ici par exemple pour le champ libelle, prix, qteStock etc. ici vous pouvez aussi ajouter
     }
                                                                                                                                                         

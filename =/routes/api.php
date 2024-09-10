@@ -25,11 +25,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('v1')->group(function () {
-    Route::post('login', [AuthController::class, 'login']); // Login
+    Route::post('login', [AuthController::class, 'login'])->name('login'); // Login
     Route::post('logout', [AuthController::class, 'logout']); // Logout
     // Route register
     Route::post('register', [AuthController::class,'register']); // Register
 });
+
 
 Route::middleware(['auth:api','role:admin'])->prefix('v1')->group(function () {
     Route::get('users', [UserController::class, 'index']);// récupération de tous les users
@@ -46,8 +47,8 @@ Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function 
     Route::post('clients/{id}/dettes', [ClientController::class, 'listDettes']);  // Récupérer les dettes d'un client
     Route::post('clients/{id}/user', [ClientController::class, 'showWithUser']);  // Récupérer un client avec son user
     Route::get('clients/telephone', [ClientController::class,'searchByTelephone']);  // Rechercher un client par numéro de téléphone (partial search)
-    // Route::post('clients', [ClientController::class, 'store'])->name('clients.show')->middleware('client.photo');  // Ajouter un nouveau client
-    Route::post('clients', [ClientController::class, 'store'])->name('clients.show');
+     Route::post('clients', [ClientController::class, 'store'])->name('clients.show');  // Ajouter un nouveau client
+    //Route::post('clients', [ClientController::class, 'store'])->name('clients.show');
     Route::put('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour un client spécifique
     Route::patch('clients/{id}', [ClientController::class, 'update']);  // Mettre à jour partiellement un client spécifique
     Route::delete('clients/{id}', [ClientController::class, 'destroy']);  // Supprimer un client spécifique

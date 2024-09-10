@@ -16,7 +16,7 @@ class Article extends Model
                 $query->where('quantite_stock', '>', 0);
             });
         }
-    protected $fillable = ['libelle', 'prix', 'qteStock'];
+    protected $fillable = ['libelle', 'prix', 'quantite_stock'];
 
     protected $dates = ['deleted_at'];
 

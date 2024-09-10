@@ -16,6 +16,7 @@ use App\Services\Contracts\DetteServiceInterface;
 use App\Services\DetteService;
 use App\Models\Dette;
 use App\Observers\DetteObserver;
+use App\Services\ClientService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(DetteRepositoryInterface::class, DetteRepository::class);
         $this->app->bind(DetteServiceInterface::class, DetteService::class);
+        //$this->app->bind(ClientServiceInterface::class, ClientService::class);
     }
 
     /**
