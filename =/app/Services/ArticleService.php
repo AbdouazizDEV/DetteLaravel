@@ -14,10 +14,18 @@ class ArticleService implements ArticleServiceInterface
         $this->articleRepository = $articleRepository;
     }
 
-    public function all()
+    public function all(array $filters = [])
     {
+        if (isset($filters['disponible'])) {
+            if ($filters['disponible'] === 'oui') {
+                return $this->articleRepository->filterByAvailability(true);
+            } elseif ($filters['disponible'] === 'non') {
+                return $this->articleRepository->filterByAvailability(false);
+            }
+        }
         return $this->articleRepository->all();
     }
+
 
     public function find($id)
     {

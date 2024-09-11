@@ -5,12 +5,26 @@ namespace App\Repositories;
 use App\Models\Article;
 use App\Repositories\Contracts\ArticleRepositoryInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class ArticleRepository implements ArticleRepositoryInterface
 {
-    public function all()
+    public function all($disponible = null, $perPage = 10)
     {
         return Article::all();
+    }
+
+    /* public function filterByAvailability($isAvailable)
+    {
+        if ($isAvailable) {
+            return Article::where('quantite_stock', '>', 0)->get();
+        } else {
+            return Article::where('quantite_stock', '=', 0)->get();
+        }
+    } */
+    public function filterByAvailability(bool $isAvailable): Collection
+    {
+        return Article::where('quantite_stock', $isAvailable ? '>' : '=', 0)->get();
     }
 
     public function find($id)

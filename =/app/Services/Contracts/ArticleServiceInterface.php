@@ -4,7 +4,7 @@ namespace App\Services\Contracts;
 
 interface ArticleServiceInterface
 {
-    public function all();
+    public function all(array $filters = []);
     public function find($id);
     public function create(array $data);
     public function update($id, array $data);

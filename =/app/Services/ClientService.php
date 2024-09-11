@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Repositories\Contracts\ClientRepositoryInterface;
 use App\Services\Contracts\ClientServiceInterface;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Client;
 use App\Facades\UploadFacade;
 use App\Services\Contracts\FileStorageServiceInterface;
@@ -12,15 +11,13 @@ use App\Repositories\Contracts\UserRepositoryInterface; // Uncommented this line
 use Illuminate\Http\Request;
 use App\Events\ClientCreated;
 use App\Services\CloudinaryService;
-use Cloudinary\Api\Upload\UploadApi;
 use InvalidArgumentException;
-//use App\Services\Exception\RuntimeException;
+use App\Facades\ClientServiceFacade;
 use RuntimeException;
 use App\Models\User; // assuming the User class is in the App\Models namespace
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use App\Facades\ClientServiceFacade; // assuming it's defined in the App\Facades namespace
-use App\Jobs\UploadUserImageJob;
+
 class ClientService implements ClientServiceInterface
 {
     protected $clientRepository;
@@ -59,16 +56,18 @@ class ClientService implements ClientServiceInterface
     
             if (isset($data["user"]['photo'])) {
                 try {
-                    // Téléchargement de l'image vers Cloudinary
-                    $uploadedImage = $this->cloudinaryService->upload($data["user"]['photo'], [
-                        'folder' => 'avatars',
-                        'public_id' => 'user_' . $userId,
-                        'overwrite' => true,
-                        'resource_type' => 'image',
-                    ]);
+                    // Upload de l'image sur Cloudinary
+                    // Voir CloudinaryService.php upload()
+                    
+                    $uploadedImage = $this->cloudinaryService->uploadToCloudinary($data["user"]['photo']);
                     // Mise à jour du chemin de la photo dans la base de données avec l'URL Cloudinary
-                    $user->photo = $uploadedImage['secure_url'];
-                    $user->save();
+                    if ($uploadedImage !== null) {
+                        $user->photo = $uploadedImage['secure_url'];
+                        $user->save();
+                    }else {
+                        $user->photo = null;
+                        $user->save();
+                    }
                 } catch (\Exception $e) {
                     // Logguer l'erreur mais ne pas stocker le chemin local
                     \Log::error('Erreur lors du téléchargement de l\'image sur Cloudinary: ' . $e->getMessage());

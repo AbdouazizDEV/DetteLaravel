@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     protected $authService;
-
     public function __construct(AuthentificationServiceInterface $authService)
     {
         $this->authService = $authService;
