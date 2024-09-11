@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArchiveController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
@@ -76,7 +77,16 @@ Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function 
     Route::delete('dettes/{id}', [DetteController::class, 'destroy']);  // Supprimer une dette
     Route::post('dettes/remboursement', [DetteController::class, 'remboursement']);  // Effectuer un remboursement de la dette
     Route::post('dettes/annulation', [DetteController::class, 'annulation']);  // Annuler une dette
+    
     //paiement d'une dette
     Route::post('dettes/paiement',[DetteController::class, 'paiement']); //Paiement d'une dette 
-
+    
+    
+    Route::get('/api/v1/dettes/archive', [ArchiveController::class, 'getArchivedDettes']);
+    Route::get('/api/v1/archive/clients/{clientId}/dettes', [ArchiveController::class, 'getArchivedDettesByClient']);
+    Route::get('/api/v1/archive/dettes/{detteId}', [ArchiveController::class, 'getArchivedDetteDetails']);
+    Route::get('/api/v1/restaure/{date}', [ArchiveController::class, 'restoreDettesByDate']);
+    Route::get('/api/v1/restaure/dette/{detteId}', [ArchiveController::class, 'restoreDette']);
+    Route::get('/api/v1/restaure/client/{clientId}', [ArchiveController::class, 'restoreClientDettes']);
+    
 });

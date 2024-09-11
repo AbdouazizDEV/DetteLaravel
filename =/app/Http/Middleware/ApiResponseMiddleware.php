@@ -1,4 +1,5 @@
 <?php
+// app/Http/Middleware/ApiResponseMiddleware.php
 
 namespace App\Http\Middleware;
 
@@ -12,12 +13,13 @@ class ApiResponseMiddleware
     {
         $response = $next($request);
 
-        if ($response instanceof JsonResponse) {
+        if ($response instanceof JsonResponse && !isset($response->getData(true)['formatted'])) {
             $data = $response->getData(true);
             return response()->json([
                 'status' => $response->getStatusCode(),
                 'data' => $data,
-                'message' => 'Success'
+                'message' => 'Success',
+                'formatted' => true // Ajouter un indicateur pour éviter la répétition
             ], $response->getStatusCode());
         }
 

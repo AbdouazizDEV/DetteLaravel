@@ -94,8 +94,12 @@ class DetteService
         return DB::transaction(function () use ($detteId, $montant) {
             $dette = $this->detteRepository->find($detteId);
 
-            if (!$dette || $dette->montant_restant < $montant) {
-                return false; // Montant invalide ou dette inexistante
+            if (!$dette) {
+                return ['message' => 'Dette inexistante'];
+            }
+
+            if ($dette->montant_restant < $montant) {
+                return ['message' => 'Le montant versé ne doit pas dépasser le montant restant de la dette'];
             }
 
             // Ajouter un paiement à la dette

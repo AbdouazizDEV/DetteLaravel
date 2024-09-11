@@ -1,9 +1,11 @@
 <?php
 // app/Http/Controllers/DetteController.php
+// app/Http/Controllers/DetteController.php
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreDetteRequest;
+use App\Http\Requests\PaiementRequest;
 use App\Services\DetteService;
 use App\Models\Dette;
 use Illuminate\Http\Request;
@@ -44,17 +46,14 @@ class DetteController extends Controller
     /**
      * Effectue le paiement d'une dette
      */
-    public function paiement(Request $request)
+    public function paiement(PaiementRequest $request)
     {
-        $validated = $request->validate([
-            'dette_id' => 'required|exists:dettes,id',
-            'montant' => 'required|numeric|min:1',
-        ]);
+        $validated = $request->validated();
 
         // Appel au service pour traiter le paiement
         $result = $this->detteService->effectuerPaiement($validated['dette_id'], $validated['montant']);
 
-        if ($result) {
+        if ($result === true) {
             $dette = Dette::find($validated['dette_id']);
             return response()->json([
                 'status' => 200,
@@ -70,9 +69,7 @@ class DetteController extends Controller
         } else {
             return response()->json([
                 'status' => 400,
-                'data' => [
-                    'message' => 'Paiement non autorisé ou erreur'
-                ],
+                'data' => $result,
                 'message' => 'Success'
             ]);
         }

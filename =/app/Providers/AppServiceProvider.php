@@ -17,6 +17,10 @@ use App\Services\DetteService;
 use App\Models\Dette;
 use App\Observers\DetteObserver;
 use App\Services\ClientService;
+use App\Services\Contracts\DatabaseServiceInterface;
+use App\Services\FirebaseService;
+use App\Services\Mongoose\MongoDBService;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,6 +52,19 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(DetteRepositoryInterface::class, DetteRepository::class);
         $this->app->bind(DetteServiceInterface::class, DetteService::class);
         //$this->app->bind(ClientServiceInterface::class, ClientService::class);
+        
+        $this->app->bind(DatabaseServiceInterface::class, function ($app) {
+            // Utiliser DATABASE_DRIVER du fichier .env
+            $driver = env('DATABASE_DRIVER', 'firebase');  // Utilise 'firebase' comme valeur par défaut
+
+            if ($driver === 'firebase') {
+                return new FirebaseService();
+            } elseif ($driver === 'mongodb') {
+                return new MongoDBService();
+            }
+
+            throw new \Exception("Unsupported database driver: $driver");
+        });
     }
 
     /**
