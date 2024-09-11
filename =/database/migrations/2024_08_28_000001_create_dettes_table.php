@@ -16,8 +16,6 @@ return new class extends Migration
             $table->date('date');
             $table->decimal('clientId', 10, 2);
             $table->decimal('montant', 10, 2);
-           
-           // $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

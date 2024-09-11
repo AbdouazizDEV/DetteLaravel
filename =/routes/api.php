@@ -76,5 +76,7 @@ Route::middleware(['auth:api','role:boutiquier'])->prefix('v1')->group(function 
     Route::delete('dettes/{id}', [DetteController::class, 'destroy']);  // Supprimer une dette
     Route::post('dettes/remboursement', [DetteController::class, 'remboursement']);  // Effectuer un remboursement de la dette
     Route::post('dettes/annulation', [DetteController::class, 'annulation']);  // Annuler une dette
+    //paiement d'une dette
+    Route::post('dettes/paiement',[DetteController::class, 'paiement']); //Paiement d'une dette 
 
 });

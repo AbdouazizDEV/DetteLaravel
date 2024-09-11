@@ -1,4 +1,5 @@
 <?php
+// app/Services/DetteService.php
 
 namespace App\Services;
 
@@ -7,12 +8,13 @@ use App\Models\Dette;
 use App\Repositories\Contracts\DetteRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Repositories\DetteRepository;
 
 class DetteService
 {
     protected $detteRepository;
 
-    public function __construct(DetteRepositoryInterface $detteRepository)
+    public function __construct(DetteRepository $detteRepository)
     {
         $this->detteRepository = $detteRepository;
     }
@@ -37,19 +39,17 @@ class DetteService
                 if ($article->quantite_stock < $articleData['qteVente']) {
                     $errors[] = "La quantité demandée pour l'article {$article->libelle} dépasse le stock disponible.";
                     continue; // Skip this article
-                }else if ($article->quantite_stock == 0) {
+                } else if ($article->quantite_stock == 0) {
                     $errors[] = "La quantité demandée pour l'article {$article->libelle} est supérieure au stock disponible.";
                     continue; // Skip this article
-                }else{
-                    //calculer le montant de la dette : on miltiplie la quantité de vente par le prix de vente de chaque article et on additionne les montants, c'est cette dérniére qu'on doit enregistrer dans la table dette
+                } else {
+                    // Calculer le montant de la dette : on multiplie la quantité de vente par le prix de vente de chaque article et on additionne les montants, c'est cette dernière qu'on doit enregistrer dans la table dette
                     $validatedData['montant'] += $articleData['qteVente'] * $articleData['prixVente'];
-                    //$article->quantite_stock -= $articleData['qteVente'];//on soustrait la quantité de vente de la quantité de stock pour pouvoir enregistrer la dette
                 }
 
                 // Décrémenter le stock et ajouter à la liste des articles valides
                 $article->decrement('quantite_stock', $articleData['qteVente']);
                 $validArticles[] = $articleData;
-
             }
 
             if (empty($validArticles)) {
@@ -84,5 +84,29 @@ class DetteService
 
             throw new \Exception("Erreur lors de l'enregistrement de la dette : " . $e->getMessage());
         }
+    }
+
+    /**
+     * Effectue un paiement pour une dette donnée
+     */
+    public function effectuerPaiement($detteId, $montant)
+    {
+        return DB::transaction(function () use ($detteId, $montant) {
+            $dette = $this->detteRepository->find($detteId);
+
+            if (!$dette || $dette->montant_restant < $montant) {
+                return false; // Montant invalide ou dette inexistante
+            }
+
+            // Ajouter un paiement à la dette
+            $this->detteRepository->ajouterPaiement($detteId, $montant);
+
+            // Mise à jour du statut si la dette est complètement payée
+            if ($dette->montant_restant - $montant <= 0) {
+                $this->detteRepository->marquerCommeSoldee($detteId);
+            }
+
+            return true;
+        });
     }
 }
