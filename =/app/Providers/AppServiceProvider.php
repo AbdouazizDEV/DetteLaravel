@@ -19,7 +19,7 @@ use App\Observers\DetteObserver;
 use App\Services\ClientService;
 use App\Services\Contracts\DatabaseServiceInterface;
 use App\Services\FirebaseService;
-use App\Services\Mongoose\MongoDBService;
+use App\Services\MongoDBService;
 
 
 class AppServiceProvider extends ServiceProvider

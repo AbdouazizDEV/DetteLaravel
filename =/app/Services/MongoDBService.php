@@ -36,13 +36,16 @@ class MongoDBService implements DatabaseServiceInterface
         return $this->database->selectCollection($collectionName)->findOne(['_id' => $documentId]);
     }
 
+    
     public function saveDocument(string $collectionName, string $documentId, array $data)
     {
+        //dd($data, $collectionName, $documentId);
         $this->database->selectCollection($collectionName)->updateOne(
-            ['_id' => $documentId],
-            ['$set' => $data],
-            ['upsert' => true]
+            filter: ['_id' => $documentId],
+            update: ['$set' => $data],
+            options: ['upsert' => true],
         );
     }
-    
+
+
 }

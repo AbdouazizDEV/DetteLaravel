@@ -8,6 +8,7 @@ use App\Services\Contracts\DatabaseServiceInterface;
 
 class FirebaseService implements DatabaseServiceInterface
 {
+    
     protected $database;
 
     public function __construct()

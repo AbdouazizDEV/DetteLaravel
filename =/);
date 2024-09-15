@@ -1,0 +1,14 @@
+[90m= [39m[
+    [34;4mMongoDB\Model\BSONDocument[39;24m {#5221
+      [34mstorage[39m: [
+        "[34m_id[39m" => "[32mID_DU_DOCUMENT[39m",
+        "[34mchamp1[39m" => "[32mvaleur1[39m",
+        "[34mchamp2[39m" => "[32mvaleur2[39m",
+        "[34mchamp4[39m" => "[32mvaleur4[39m",
+      ],
+      [34mflag::STD_PROP_LIST[39m: [36mfalse[39m,
+      [34mflag::ARRAY_AS_PROPS[39m: [36mtrue[39m,
+      [34miteratorClass[39m: "[32mArrayIterator[39m",
+    },
+  ]
+
